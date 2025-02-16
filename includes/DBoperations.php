@@ -341,5 +341,40 @@ class DBoperations {
         $stmt->execute();
         return $stmt->get_result();
     }
+    public function getOrderHistory($phone) {
+        $stmt = $this->con->prepare("SELECT * FROM orders WHERE phone = ?");
+        $stmt->bind_param("s", $phone);
+        $stmt->execute();
+        return $stmt->get_result();
+    }
+    public function trackOrder($phone, $tracking_number) {
+        // Implement the logic to track the order based on phone and tracking number
+        // For example:
+        $stmt = $this->con->prepare("SELECT * FROM orders WHERE phone = ? AND tracking_number = ?");
+        $stmt->bind_param("ss", $phone, $tracking_number);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        return $result->fetch_assoc();
+    }
+    public function registerUser($userData) {
+        $sql = "INSERT INTO users (firstName, lastName, email, password, phoneNumber, address, token) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        $stmt = $this->con->prepare($sql);
+        $stmt->bind_param(
+            "sssssss",
+            $userData['firstName'],
+            $userData['lastName'],
+            $userData['email'],
+            $userData['password'],
+            $userData['phoneNumber'],
+            $userData['address'],
+            $userData['token']
+        );
+    
+        if ($stmt->execute()) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 }
 ?>

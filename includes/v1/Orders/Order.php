@@ -11,7 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         switch ($data['action']) {
             case 'create':
-                if (isset($data['user_id']) && isset($data['product_id']) && isset($data['quantity']) && isset($data['total_price'])) {
+                if (isset($data['user_id']) && isset($data['product_id']) && isset($data['quantity']) && isset($data['total_price']) && isset($data['phone'])) {
                     $result = $db->createOrder($data['user_id'], $data['product_id'], $data['quantity'], $data['total_price']);
                     if ($result == 1) {
                         $response['error'] = false;
@@ -58,6 +58,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 }
                 break;
 
+            case 'track':
+                if (isset($data['phone']) && isset($data['tracking_number'])) {
+                    $order = $db->trackOrder($data['phone'], $data['tracking_number']);
+                    if ($order) {
+                        $response['error'] = false;
+                        $response['order'] = $order;
+                    } else {
+                        $response['error'] = true;
+                        $response['message'] = "Order not found";
+                    }
+                } else {
+                    $response['error'] = true;
+                    $response['message'] = "Required fields are missing";
+                }
+                break;
+
             default:
                 $response['error'] = true;
                 $response['message'] = "Invalid action";
@@ -68,8 +84,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $response['message'] = "Action not specified";
     }
 } elseif ($_SERVER['REQUEST_METHOD'] == 'GET') {
+    $db = new DBoperations();
     if (isset($_GET['id'])) {
-        $db = new DBoperations();
         $order = $db->getOrderById($_GET['id']);
         if ($order) {
             $response['error'] = false;
@@ -78,8 +94,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $response['error'] = true;
             $response['message'] = "Order not found";
         }
+    } elseif (isset($_GET['phone'])) {
+        $orders = $db->getOrderHistory($_GET['phone']);
+        $response['error'] = false;
+        $response['orders'] = array();
+        while ($order = $orders->fetch_assoc()) {
+            array_push($response['orders'], $order);
+        }
     } else {
-        $db = new DBoperations();
         $orders = $db->getOrders();
         $response['error'] = false;
         $response['orders'] = array();
