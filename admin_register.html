@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Register</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container"> 
+        <h2>Create an Account</h2>
+        <form id="registerForm">
+            <div class="form-group">
+                <label for="firstName">First Name</label>
+                <input type="text" id="firstName" name="firstName" required>
+            </div>
+            <div class="form-group">
+                <label for="lastName">Last Name</label>
+                <input type="text" id="lastName" name="lastName" required>
+            </div>
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required minlength="8">
+            </div>
+            <div class="form-group">
+                <button type="submit" id="submitBtn">Register</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+        
+            const formData = {
+                firstName: document.getElementById('firstName').value.trim(),
+                lastName: document.getElementById('lastName').value.trim(),
+                email: document.getElementById('email').value.trim(),
+                password: document.getElementById('password').value.trim()
+            };
+        
+            console.log("Sending JSON:", JSON.stringify(formData)); // Debugging
+        
+            try {
+                const response = await fetch("http://localhost/android/includes/v1/admin/adminregister.php", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(formData) // Send JSON data
+                });
+        
+                console.log("Raw response:", response);
+        
+                const data = await response.json();
+                console.log("Response:", data);
+                alert(data.message);
+        
+                if (!data.error) {
+                    window.location.href = 'login.html'; // Redirect after success
+                }
+            } catch (error) {
+                console.error("Fetch error:", error);
+                alert('Registration failed. Please check your server.');
+            }
+        });
+        
+        
+    </script>
+</body>
+</html>

@@ -376,5 +376,32 @@ class DBoperations {
             return false;
         }
     }
-}
+    
+    public function registerAdmin($data) {
+        $firstName = trim($data['first_name']);
+        $lastName = trim($data['last_name']);
+        $email = trim($data['email']);
+        $password = password_hash(trim($data['password']), PASSWORD_DEFAULT);
+        $token = bin2hex(random_bytes(32)); // Generate a secure token
+    
+        // Check if email already exists
+        $checkQuery = $this->con->prepare("SELECT id FROM admins WHERE email = ?");
+        $checkQuery->bind_param("s", $email);
+        $checkQuery->execute();
+        $checkQuery->store_result();
+        if ($checkQuery->num_rows > 0) {
+            return ["status" => 0, "message" => "Email already registered"];
+        }
+    
+        // Insert into database with token
+        $stmt = $this->con->prepare("INSERT INTO admins (first_name, last_name, email, password, token) VALUES (?, ?, ?, ?, ?)");
+        $stmt->bind_param("sssss", $firstName, $lastName, $email, $password, $token);
+    
+        if ($stmt->execute()) {
+            return ["status" => 1, "message" => "Admin registered successfully", "token" => $token];
+        } else {
+            return ["status" => 0, "message" => "Database error: " . $stmt->error];
+        }
+    }
+}    
 ?>
