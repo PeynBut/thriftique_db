@@ -3,59 +3,99 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Register</title>
+    <title>Admin Login</title>
     <link rel="stylesheet" href="login.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 </head>
 <body>
     <div class="container">
-        <h2>Admin Registration</h2>
-        <form id="registerForm">
+        <h2>Admin Login</h2>
+        <form id="loginForm">
             <div class="input-group">
                 <label for="email">Email</label>
                 <input type="email" id="email" placeholder="admin@example.com" required>
             </div>
-            <div class="input-group">
+            <div class="input-group password-group">
                 <label for="password">Password</label>
-                <input type="password" id="password" placeholder="********" required minlength="8">
-                <small>Password must be at least 8 characters</small>
+                <div class="password-container">
+                    <input type="password" id="password" placeholder="********" required minlength="8">
+                    <i class="fa-solid fa-eye" id="togglePassword"></i> <!-- Eye Icon -->
+                </div>
             </div>
-            <button type="submit">Register</button>
-            <p class="login-link">Already have an account? <a href="login.html">Login</a></p>
+            <button type="submit">Login</button>
+            <p class="register-link">Don't have an account? <a href="register.html">Register</a></p>
         </form>
     </div>
 
     <script>
-        document.getElementById('registerForm').addEventListener('submit', async function(event) {
-            event.preventDefault();
-            
-            const email = document.getElementById('email').value.trim();
-            const password = document.getElementById('password').value.trim();
-        
-            if (!email || !password) {
-                alert("Both fields are required!");
-                return;
-            }
-        
-            const formData = { email, password };
-        
-            try {
-                const response = await fetch("http://localhost/android/includes/v1/admin/adminregister.php", {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(formData)
-                });
-        
-                const data = await response.json();
-                alert(data.message);
-        
-                if (!data.error) {
-                    window.location.href = 'login.html';
+        document.addEventListener("DOMContentLoaded", function () {
+            // Toggle Password Visibility
+            const passwordField = document.getElementById("password");
+            const togglePassword = document.getElementById("togglePassword");
+
+            togglePassword.addEventListener("click", function() {
+                const isPassword = passwordField.type === "password";
+                passwordField.type = isPassword ? "text" : "password";
+                this.classList.toggle("fa-eye-slash", isPassword);
+                this.classList.toggle("fa-eye", !isPassword);
+            });
+
+            // Handle form submission
+            document.getElementById('loginForm').addEventListener('submit', async function(event) {
+                event.preventDefault();
+                
+                const email = document.getElementById('email').value.trim();
+                const password = document.getElementById('password').value.trim();
+                
+                // Basic validation for fields
+                if (!email || !password) {
+                    alert('All fields are required.');
+                    return;
                 }
-            } catch (error) {
-                alert("Registration failed. Please try again.");
-            }
+                
+                // Basic email validation
+                const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailPattern.test(email)) {
+                    alert('Enter a valid email.');
+                    return;
+                }
+
+                // Prepare the form data to send
+                const formData = { email, password };
+                console.log("Sending JSON:", formData);  // Logs the object directly
+
+                try {
+                    const response = await fetch("http://192.168.100.184/android/includes/v1/admin/login.php", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'  // Set content type as JSON
+                        },
+                        body: JSON.stringify(formData)  // Send data as JSON string
+                    });
+
+                    console.log("Raw response:", response);
+                    
+                    // Check if the response is ok
+                    if (!response.ok) {
+                        throw new Error("Failed to fetch. Response status: " + response.status);
+                    }
+
+                    const data = await response.json();  // Parse the response as JSON
+                    console.log(data);  // Log the response from server
+
+                    alert(data.message);  // Show the message from server
+
+                    // If there was no error in the response, redirect to the dashboard
+                    if (!data.error) {
+                        window.location.href = 'dashboard.html';  // Redirect if login is successful
+                    }
+
+                } catch (error) {
+                    console.error("Fetch Error:", error);  // Log any fetch errors
+                    alert('Login failed. Please check your server or connection.');
+                }
+            });
         });
-        
     </script>
 </body>
 </html>

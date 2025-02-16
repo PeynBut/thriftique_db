@@ -1,79 +1,84 @@
 <?php
-header("Access-Control-Allow-Origin: *");
-header("Content-Type: application/json; charset=UTF-8");
-header("Access-Control-Allow-Methods: POST, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type, Accept, Origin, Authorization");
+session_start();
 
-// Enable error reporting
+file_put_contents("php://stderr", "Request received!\n", FILE_APPEND);
+
+ini_set('log_errors', 1);
+ini_set('error_log', '/tmp/php_errors.log'); // Change path if needed
+error_reporting(E_ALL);
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
 
-// Handle preflight requests for CORS
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+// Enable CORS
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Authorization");
+
+// Handle preflight request
+if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
     http_response_code(200);
     exit();
+}
+
+error_log("Login API hit"); // Log if API is accessed
+
+// Database credentials
+$host = "localhost";
+$dbname = "thriftique";
+$username = "root"; 
+$password = ""; 
+
+try {
+    $pdo = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+} catch (PDOException $e) {
+    error_log("Database connection failed: " . $e->getMessage());
+    die(json_encode(["error" => true, "message" => "Database connection failed."]));
 }
 
 // Read JSON input
 $input = file_get_contents("php://input");
-error_log("Raw input data: " . $input); // Log raw input data for debugging
 
-if (empty($input)) {
-    http_response_code(400);
-    echo json_encode(["error" => true, "message" => "Request body is empty."]);
+if (!$input) {
+    echo json_encode(["error" => true, "message" => "Invalid request. No input received."]);
     exit();
 }
 
-// Decode JSON
+error_log("Received JSON: " . $input);
 $data = json_decode($input, true);
 
-// Check if JSON decoding was successful
-if (json_last_error() !== JSON_ERROR_NONE) {
-    error_log("JSON decoding error: " . json_last_error_msg());
-    http_response_code(400);
-    echo json_encode(["error" => true, "message" => "Invalid JSON data."]);
+// Validate input
+if (!isset($data['email']) || !isset($data['password'])) {
+    echo json_encode(["error" => true, "message" => "Email and Password are required."]);
     exit();
 }
 
-// Validate required fields
-if (
-    !isset($data['firstName']) || !isset($data['lastName']) ||
-    !isset($data['email']) || !isset($data['password']) ||
-    empty($data['firstName']) || empty($data['lastName']) ||
-    empty($data['email']) || empty($data['password'])
-) {
-    http_response_code(400);
-    echo json_encode(["error" => true, "message" => "All fields are required."]);
-    exit();
-}
-
-// Extract form data
-$firstName = trim($data['firstName']);
-$lastName = trim($data['lastName']);
 $email = trim($data['email']);
-$password = password_hash(trim($data['password']), PASSWORD_DEFAULT);
-$token = bin2hex(random_bytes(32)); // Generate a secure token
+$password = trim($data['password']);
 
-// Database connection
-$host = 'localhost';
-$db = 'thriftique'; // Replace with your database name
-$user = 'root'; // Replace with your database username
-$pass = ''; // Replace with your database password
+// Check if the user exists
+$stmt = $pdo->prepare("SELECT id, first_name, last_name, password FROM admins WHERE email = ?");
+$stmt->execute([$email]);
+$user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-try {
-    $pdo = new PDO("mysql:host=$host;dbname=$db", $user, $pass);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
-    // Insert data into the database with token
-    $stmt = $pdo->prepare("INSERT INTO admins (first_name, last_name, email, password, token) VALUES (?, ?, ?, ?, ?)");
-    $stmt->execute([$firstName, $lastName, $email, $password, $token]);
-
-    http_response_code(200);
-    echo json_encode(["error" => false, "message" => "Registration successful!", "token" => $token]);
-} catch (PDOException $e) {
-    error_log("Database error: " . $e->getMessage()); // Log the database error
-    http_response_code(500);
-    echo json_encode(["error" => true, "message" => "Database error: " . $e->getMessage()]);
+if (!$user) {
+    echo json_encode(["error" => true, "message" => "Invalid email or password."]);
+    exit();
 }
+
+// Verify password
+if (!password_verify($password, $user['password'])) {
+    echo json_encode(["error" => true, "message" => "Invalid email or password."]);
+    exit();
+}
+
+// Set session variables
+$_SESSION['admin_id'] = $user['id'];
+$_SESSION['admin_name'] = $user['first_name'];
+
+echo json_encode([
+    "error" => false,
+    "message" => "Login successful!",
+    "admin_name" => $user['first_name']
+]);
 ?>
