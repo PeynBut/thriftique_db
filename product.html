@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Management</title>
+    <link rel="stylesheet" href="product.css">
+</head>
+<body>
+    <div class="top-bar">
+        <div class="menu-toggle" onclick="toggleMenu()">☰</div>
+        <h2 style="margin-left: 20px;">Product Management</h2>
+    </div>
+    <div class="sidebar" id="sidebar">
+        <a href="dashboard.html">🏠 Dashboard</a>
+        <a href="products.html">📦 Products</a>
+        <a href="categories.html">📂 Categories</a>
+        <a href="analytics.html">📊 Analytics</a>
+        <a href="settings.html">⚙️ Settings</a>
+    </div>
+    <div class="content" id="content">
+        <h2>Products</h2>
+
+        <!-- Product Creation Form -->
+        <form id="product-form" enctype="multipart/form-data">
+            <input type="text" id="product-name" placeholder="Product Name" required>
+            <textarea id="product-description" placeholder="Product Description" required></textarea>
+            <input type="number" id="product-price" placeholder="Product Price" required>
+            <input type="file" id="product-image" accept="image/*" required> <!-- Image upload field -->
+            <button type="submit">Create Product</button>
+        </form>
+
+        <!-- Product List Table -->
+        <div class="products-container" id="products-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Product Name</th>
+                        <th>Category</th>
+                        <th>Price</th>
+                        <th>Stock</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>T-Shirt</td>
+                        <td>Women Clothes</td>
+                        <td>$79.80</td>
+                        <td>79</td>
+                        <td>Scheduled</td>
+                        <td><a href="#">Details</a></td>
+                    </tr>
+                    <!-- Add more rows as needed -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        function toggleMenu() {
+            document.getElementById('sidebar').classList.toggle('active');
+            document.getElementById('content').classList.toggle('shift');
+        }
+
+        // Handle product creation form submission
+        document.getElementById('product-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+        
+            const name = document.getElementById('product-name').value;
+            const description = document.getElementById('product-description').value;
+            const price = document.getElementById('product-price').value;
+            const image = document.getElementById('product-image').files[0]; // Get the selected image file
+        
+            const formData = new FormData();
+            formData.append('action', 'create');
+            formData.append('name', name);
+            formData.append('description', description);
+            formData.append('price', price);
+            formData.append('image', image); // Append the image to form data
+        
+            console.log('Sending data:', formData); // Log data to the console
+        
+            fetch('http://localhost/android/includes/v1/Products/products.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                console.log('Response:', response); // Log the response for debugging
+                return response.json();
+            })
+            .then(data => {
+                console.log('Data:', data); // Log the data to the console
+                if (data.error) {
+                    alert(data.message);
+                } else {
+                    alert(data.message);
+                    document.getElementById('product-form').reset();
+                    loadProducts();  // Reload products after adding a new one
+                }
+            })
+            .catch(error => {
+                console.error('An error occurred:', error); // Log any errors to the console
+                alert('An error occurred: ' + error);
+            });
+        });
+    </script>        
+</body>
+</html>

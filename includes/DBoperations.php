@@ -68,6 +68,18 @@ class DBoperations {
     }
     //Product Management System
     // Create a new product
+
+    public function createProductWithImage($name, $description, $price, $imagePath) {
+        $stmt = $this->con->prepare("INSERT INTO products (name, description, price, image) VALUES (?, ?, ?, ?)");
+        $stmt->bind_param("ssis", $name, $description, $price, $imagePath);
+    
+        if ($stmt->execute()) {
+            return 1; // Success
+        } else {
+            return 0; // Failure
+        }
+    }
+    
     public function createProduct($name, $description, $price) {
         $stmt = $this->con->prepare("INSERT INTO products (name, description, price) VALUES (?, ?, ?)");
         $stmt->bind_param("ssd", $name, $description, $price);
