@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minimalist Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        body {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background: #f8f9fa;
+        }
+        .top-bar {
+            width: 100%;
+            height: 60px;
+            background: #ffffff;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+        }
+        .menu-toggle {
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 1001;
+        }
+        .sidebar {
+            width: 250px;
+            background: #ffffff;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            left: -260px;
+            top: 60px;
+            height: calc(100% - 60px);
+            transition: left 0.3s ease-in-out;
+        }
+        .sidebar.active {
+            left: 0;
+        }
+        .sidebar h2 {
+            margin-bottom: 20px;
+            font-size: 20px;
+            text-align: center;
+            color: #333;
+        }
+        .sidebar a {
+            text-decoration: none;
+            color: #333;
+            padding: 12px;
+            display: block;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+        .sidebar a:hover {
+            background: #e9ecef;
+        }
+        .content {
+            flex: 1;
+            padding: 80px 20px 20px;
+            margin-left: 0;
+            transition: margin-left 0.3s ease-in-out;
+        }
+        .content.shift {
+            margin-left: 250px;
+        }
+        .dashboard-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .card {
+            background: #fff;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            text-align: center;
+        }
+        .card h3 {
+            margin-bottom: 10px;
+            font-size: 18px;
+            color: #333;
+        }
+        .card p {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007bff;
+        }
+    </style>
+</head>
+<body>
+    <div class="top-bar">
+        <div class="menu-toggle" onclick="toggleMenu()">☰</div>
+        <h2 style="margin-left: 20px;">Dashboard</h2>
+    </div>
+    <div class="sidebar" id="sidebar">
+        <!-- Updated links to navigate to respective pages -->
+        <a href="dashboard.html">🏠 Dashboard</a>
+        <a href="product.html">📦 Products</a>
+        <a href="categories.html">📂 Categories</a>
+        <a href="analytics.html">📊 Analytics</a>
+        <a href="settings.html">⚙️ Settings</a>
+    </div>
+    <div class="content" id="content">
+        <h2>Welcome to your Dashboard</h2>
+        <p>Select an option from the sidebar to get started.</p>
+        
+        <!-- Dashboard overview cards -->
+        <div class="dashboard-overview">
+            <div class="card">
+                <h3>Total Products</h3>
+                <p>120</p>
+            </div>
+            <div class="card">
+                <h3>Total Categories</h3>
+                <p>15</p>
+            </div>
+            <div class="card">
+                <h3>Monthly Sales</h3>
+                <p>$5,230</p>
+            </div>
+            <div class="card">
+                <h3>Active Users</h3>
+                <p>320</p>
+            </div>
+        </div>
+    </div>
+    <script>
+        function toggleMenu() {
+            document.getElementById('sidebar').classList.toggle('active');
+            document.getElementById('content').classList.toggle('shift');
+        }
+    </script>
+</body>
+</html>

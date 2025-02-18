@@ -1,96 +1,68 @@
 <?php
-require_once '../../DBoperations.php';
-$response = array();
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $input = file_get_contents('php://input');
-    $data = json_decode($input, true);
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
 
-    if (isset($data['action'])) {
-        $db = new DBoperations();
+// Database connection (update with your details)
+$host = 'localhost';
+$dbname = 'thriftique';
+$username = 'root';
+$password = '';
+$conn = new mysqli($host, $username, $password, $dbname);
 
-        switch ($data['action']) {
-            case 'create':
-                if (isset($data['name']) && isset($data['description']) && isset($data['price'])) {
-                    $result = $db->createProduct($data['name'], $data['description'], $data['price']);
-                    if ($result == 1) {
-                        $response['error'] = false;
-                        $response['message'] = "Product created successfully";
-                    } else {
-                        $response['error'] = true;
-                        $response['message'] = "Failed to create product";
-                    }
-                } else {
-                    $response['error'] = true;
-                    $response['message'] = "Required fields are missing";
-                }
-                break;
-
-            case 'update':
-                if (isset($data['id']) && isset($data['name']) && isset($data['description']) && isset($data['price'])) {
-                    $result = $db->updateProduct($data['id'], $data['name'], $data['description'], $data['price']);
-                    if ($result == 1) {
-                        $response['error'] = false;
-                        $response['message'] = "Product updated successfully";
-                    } else {
-                        $response['error'] = true;
-                        $response['message'] = "Failed to update product";
-                    }
-                } else {
-                    $response['error'] = true;
-                    $response['message'] = "Required fields are missing";
-                }
-                break;
-
-            case 'delete':
-                if (isset($data['id'])) {
-                    $result = $db->deleteProduct($data['id']);
-                    if ($result == 1) {
-                        $response['error'] = false;
-                        $response['message'] = "Product deleted successfully";
-                    } else {
-                        $response['error'] = true;
-                        $response['message'] = "Failed to delete product";
-                    }
-                } else {
-                    $response['error'] = true;
-                    $response['message'] = "Required fields are missing";
-                }
-                break;
-
-            default:
-                $response['error'] = true;
-                $response['message'] = "Invalid action";
-                break;
-        }
-    } else {
-        $response['error'] = true;
-        $response['message'] = "Action not specified";
-    }
-} elseif ($_SERVER['REQUEST_METHOD'] == 'GET') {
-    if (isset($_GET['id'])) {
-        $db = new DBoperations();
-        $product = $db->getProductById($_GET['id']);
-        if ($product) {
-            $response['error'] = false;
-            $response['product'] = $product;
-        } else {
-            $response['error'] = true;
-            $response['message'] = "Product not found";
-        }
-    } else {
-        $db = new DBoperations();
-        $products = $db->getProducts();
-        $response['error'] = false;
-        $response['products'] = array();
-        while ($product = $products->fetch_assoc()) {
-            array_push($response['products'], $product);
-        }
-    }
-} else {
-    $response['error'] = true;
-    $response['message'] = "Invalid request method";
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
 }
 
-echo json_encode($response);
+// Handle preflight requests
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    header("HTTP/1.1 200 OK");
+    exit;
+}
+
+// Handle form submission
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'create') {
+    // Sanitize and collect form data
+    $name = $_POST['name'];
+    $description = $_POST['description'];
+    $price = $_POST['price'];
+    
+    // Handle image upload
+    if (isset($_FILES['image']) && $_FILES['image']['error'] == 0) {
+        $imageName = $_FILES['image']['name'];
+        $imageTmpName = $_FILES['image']['tmp_name'];
+        $imageSize = $_FILES['image']['size'];
+        $imageExtension = pathinfo($imageName, PATHINFO_EXTENSION);
+
+        // Check for valid image file types (e.g., jpg, png)
+        $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif'];
+        if (in_array(strtolower($imageExtension), $allowedExtensions)) {
+            $imagePath = 'uploads/' . uniqid() . '.' . $imageExtension;
+
+            // Move the uploaded image to the server's upload directory
+            if (move_uploaded_file($imageTmpName, $imagePath)) {
+                // Insert product details into the database
+                $stmt = $conn->prepare("INSERT INTO products (name, description, price, image) VALUES (?, ?, ?, ?)");
+                $stmt->bind_param("ssds", $name, $description, $price, $imagePath);
+
+                if ($stmt->execute()) {
+                    echo json_encode(['success' => true, 'message' => 'Product added successfully']);
+                } else {
+                    echo json_encode(['error' => true, 'message' => 'Error adding product to database', 'error_details' => $stmt->error]);
+                }
+            } else {
+                echo json_encode(['error' => true, 'message' => 'Image upload failed']);
+            }
+        } else {
+            echo json_encode(['error' => true, 'message' => 'Invalid image type']);
+        }
+    } else {
+        echo json_encode(['error' => true, 'message' => 'Image is required']);
+    }
+} else {
+    echo json_encode(['error' => true, 'message' => 'Invalid request']);
+}
+
+$conn->close();
 ?>

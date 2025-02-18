@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Register</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 </head>
 <body>
     <div class="container"> 
@@ -24,7 +25,17 @@
             </div>
             <div class="form-group">
                 <label for="password">Password</label>
-                <input type="password" id="password" name="password" required minlength="8">
+                <div class="password-container">
+                    <input type="password" id="password" name="password" required minlength="8">
+                    <i class="fa-solid fa-eye" id="togglePassword"></i> <!-- Eye Icon -->
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="confirmPassword">Confirm Password</label>
+                <div class="password-container">
+                    <input type="password" id="confirmPassword" name="confirmPassword" required minlength="8">
+                    <i class="fa-solid fa-eye" id="toggleConfirmPassword"></i> <!-- Eye Icon -->
+                </div>
             </div>
             <div class="form-group">
                 <button type="submit" id="submitBtn">Register</button>
@@ -32,16 +43,55 @@
         </form>
     </div>
 
+    <!-- Toast Notification -->
+    <div id="toast" class="toast">Passwords do not match!</div>
+
     <script>
+        function showToast(message) {
+            const toast = document.getElementById("toast");
+            toast.textContent = message;
+            toast.classList.add("show");
+            setTimeout(() => {
+                toast.classList.remove("show");
+            }, 3000);
+        }
+
+        // Toggle Password Visibility Function
+        function togglePasswordVisibility(inputId, toggleId) {
+            const inputField = document.getElementById(inputId);
+            const toggleIcon = document.getElementById(toggleId);
+
+            toggleIcon.addEventListener("click", function () {
+                if (inputField.type === "password") {
+                    inputField.type = "text";
+                    toggleIcon.classList.replace("fa-eye", "fa-eye-slash");
+                } else {
+                    inputField.type = "password";
+                    toggleIcon.classList.replace("fa-eye-slash", "fa-eye");
+                }
+            });
+        }
+
+        // Attach the function to both password fields
+        togglePasswordVisibility("password", "togglePassword");
+        togglePasswordVisibility("confirmPassword", "toggleConfirmPassword");
+
         document.getElementById('registerForm').addEventListener('submit', async function(event) {
             event.preventDefault();
         
-            const formData = {
-                firstName: document.getElementById('firstName').value.trim(),
-                lastName: document.getElementById('lastName').value.trim(),
-                email: document.getElementById('email').value.trim(),
-                password: document.getElementById('password').value.trim()
-            };
+            const firstName = document.getElementById('firstName').value.trim();
+            const lastName = document.getElementById('lastName').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const confirmPassword = document.getElementById('confirmPassword').value.trim();
+
+            // Check if passwords match
+            if (password !== confirmPassword) {
+                showToast("Passwords do not match!");
+                return;
+            }
+
+            const formData = { firstName, lastName, email, password };
         
             console.log("Sending JSON:", JSON.stringify(formData)); // Debugging
         
@@ -69,8 +119,25 @@
                 alert('Registration failed. Please check your server.');
             }
         });
-        
-        
     </script>
+
+    <style>
+        .password-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .password-container input {
+            width: 100%;
+            padding-right: 35px; /* Space for eye icon */
+        }
+        .password-container i {
+            position: absolute;
+            right: 10px;
+            cursor: pointer;
+            color: #555;
+            font-size: 18px;
+        }
+    </style>
 </body>
 </html>
