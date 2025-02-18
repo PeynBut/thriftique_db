@@ -43,17 +43,7 @@
                         <th>Action</th>
                     </tr>
                 </thead>
-                <tbody>
-                    <tr>
-                        <td>T-Shirt</td>
-                        <td>Women Clothes</td>
-                        <td>$79.80</td>
-                        <td>79</td>
-                        <td>Scheduled</td>
-                        <td><a href="#">Details</a></td>
-                    </tr>
-                    <!-- Add more rows as needed -->
-                </tbody>
+                <tbody></tbody>
             </table>
         </div>
     </div>
@@ -67,31 +57,36 @@
         // Handle product creation form submission
         document.getElementById('product-form').addEventListener('submit', function(e) {
             e.preventDefault();
-        
+
             const name = document.getElementById('product-name').value;
             const description = document.getElementById('product-description').value;
             const price = document.getElementById('product-price').value;
             const image = document.getElementById('product-image').files[0]; // Get the selected image file
-        
+
             const formData = new FormData();
             formData.append('action', 'create');
             formData.append('name', name);
             formData.append('description', description);
             formData.append('price', price);
             formData.append('image', image); // Append the image to form data
-        
-            console.log('Sending data:', formData); // Log data to the console
-        
-            fetch('http://localhost/android/includes/v1/Products/products.php', {
+
+            // Log the FormData contents to verify
+            for (let [key, value] of formData.entries()) {
+                console.log(key + ": " + value);
+            }
+
+            // Send data to the backend via Fetch API
+            fetch('http://127.0.0.1/android/includes/v1/Products/products.php', {
                 method: 'POST',
                 body: formData
             })
             .then(response => {
-                console.log('Response:', response); // Log the response for debugging
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
                 return response.json();
             })
             .then(data => {
-                console.log('Data:', data); // Log the data to the console
                 if (data.error) {
                     alert(data.message);
                 } else {
@@ -101,10 +96,72 @@
                 }
             })
             .catch(error => {
-                console.error('An error occurred:', error); // Log any errors to the console
-                alert('An error occurred: ' + error);
+                console.error('Error occurred:', error);
+                if (error.response) {
+                    console.error('Error data:', error.response.data);
+                    console.error('Error status:', error.response.status);
+                    console.error('Error headers:', error.response.headers);
+                } else if (error.request) {
+                    console.error('Error request:', error.request);
+                } else {
+                    console.error('Error message:', error.message);
+                }
+                alert('An error occurred: ' + error.message);
             });
         });
-    </script>        
+
+        // Function to load products
+        function loadProducts() {
+            fetch('http://127.0.0.1/android/includes/v1/Products/products.php', {
+                method: 'GET'
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Data:', data);
+
+                if (data && data.products && data.products.length > 0) {
+                    const productsContainer = document.getElementById('products-container');
+                    const table = productsContainer.querySelector('table');
+                    
+                    table.querySelector('tbody').innerHTML = '';
+                    
+                    data.products.forEach(product => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${product.name}</td>
+                            <td>${product.category}</td>
+                            <td>${product.price}</td>
+                            <td>${product.stock}</td>
+                            <td>${product.status}</td>
+                            <td><button onclick="editProduct(${product.id})">Edit</button></td>
+                        `;
+                        table.querySelector('tbody').appendChild(row);
+                    });
+                } else {
+                    alert('No products found.');
+                }
+            })
+            .catch(error => {
+                console.error('Error occurred:', error);
+                if (error.response) {
+                    console.error('Error data:', error.response.data);
+                    console.error('Error status:', error.response.status);
+                    console.error('Error headers:', error.response.headers);
+                } else if (error.request) {
+                    console.error('Error request:', error.request);
+                } else {
+                    console.error('Error message:', error.message);
+                }
+                alert('An error occurred: ' + error.message);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', loadProducts);
+    </script>
 </body>
 </html>

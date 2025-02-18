@@ -1,74 +1,68 @@
 <?php
 
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: POST, GET, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Authorization');
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
 
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+// Database connection (update with your details)
+$host = 'localhost';
+$dbname = 'thriftique';
+$username = 'root';
+$password = '';
+$conn = new mysqli($host, $username, $password, $dbname);
 
-require_once '../../DBoperations.php';
-$response = array();
-
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    // Check if the form is submitted with multipart/form-data (for file uploads)
-    if (isset($_FILES['image']) && isset($_POST['name']) && isset($_POST['description']) && isset($_POST['price'])) {
-        // Retrieve form data
-        $name = $_POST['name'];
-        $description = $_POST['description'];
-        $price = $_POST['price'];
-        $image = $_FILES['image'];
-
-        // Handle image upload
-        $imageName = time() . '-' . basename($image['name']);
-        $uploadDir = 'uploads/products/';
-        $uploadPath = $uploadDir . $imageName;
-
-        // Check if the image was successfully uploaded
-        if (move_uploaded_file($image['tmp_name'], $uploadPath)) {
-            $db = new DBoperations();
-
-            // Create the product with the image path
-            $result = $db->createProductWithImage($name, $description, $price, $uploadPath);
-            if ($result == 1) {
-                $response['error'] = false;
-                $response['message'] = "Product created successfully";
-            } else {
-                $response['error'] = true;
-                $response['message'] = "Failed to create product";
-            }
-        } else {
-            $response['error'] = true;
-            $response['message'] = "Failed to upload image";
-        }
-    } else {
-        $response['error'] = true;
-        $response['message'] = "Required fields are missing";
-    }
-} elseif ($_SERVER['REQUEST_METHOD'] == 'GET') {
-    if (isset($_GET['id'])) {
-        $db = new DBoperations();
-        $product = $db->getProductById($_GET['id']);
-        if ($product) {
-            $response['error'] = false;
-            $response['product'] = $product;
-        } else {
-            $response['error'] = true;
-            $response['message'] = "Product not found";
-        }
-    } else {
-        $db = new DBoperations();
-        $products = $db->getProducts();
-        $response['error'] = false;
-        $response['products'] = array();
-        while ($product = $products->fetch_assoc()) {
-            array_push($response['products'], $product);
-        }
-    }
-} else {
-    $response['error'] = true;
-    $response['message'] = "Invalid request method";
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
 }
 
-echo json_encode($response);
+// Handle preflight requests
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    header("HTTP/1.1 200 OK");
+    exit;
+}
+
+// Handle form submission
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'create') {
+    // Sanitize and collect form data
+    $name = $_POST['name'];
+    $description = $_POST['description'];
+    $price = $_POST['price'];
+    
+    // Handle image upload
+    if (isset($_FILES['image']) && $_FILES['image']['error'] == 0) {
+        $imageName = $_FILES['image']['name'];
+        $imageTmpName = $_FILES['image']['tmp_name'];
+        $imageSize = $_FILES['image']['size'];
+        $imageExtension = pathinfo($imageName, PATHINFO_EXTENSION);
+
+        // Check for valid image file types (e.g., jpg, png)
+        $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif'];
+        if (in_array(strtolower($imageExtension), $allowedExtensions)) {
+            $imagePath = 'uploads/' . uniqid() . '.' . $imageExtension;
+
+            // Move the uploaded image to the server's upload directory
+            if (move_uploaded_file($imageTmpName, $imagePath)) {
+                // Insert product details into the database
+                $stmt = $conn->prepare("INSERT INTO products (name, description, price, image) VALUES (?, ?, ?, ?)");
+                $stmt->bind_param("ssds", $name, $description, $price, $imagePath);
+
+                if ($stmt->execute()) {
+                    echo json_encode(['success' => true, 'message' => 'Product added successfully']);
+                } else {
+                    echo json_encode(['error' => true, 'message' => 'Error adding product to database', 'error_details' => $stmt->error]);
+                }
+            } else {
+                echo json_encode(['error' => true, 'message' => 'Image upload failed']);
+            }
+        } else {
+            echo json_encode(['error' => true, 'message' => 'Invalid image type']);
+        }
+    } else {
+        echo json_encode(['error' => true, 'message' => 'Image is required']);
+    }
+} else {
+    echo json_encode(['error' => true, 'message' => 'Invalid request']);
+}
+
+$conn->close();
 ?>

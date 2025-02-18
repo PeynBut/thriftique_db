@@ -11,7 +11,10 @@ body {
     align-items: center;
     justify-content: center;
     height: 100vh;
-    background-color: #f9f9f9;
+    margin: 0;
+    background-repeat: no-repeat;
+    background-image: url("login/bg\ image\ thriftiqye.jpg");
+    background-size: cover;
 }
 
 .container {
