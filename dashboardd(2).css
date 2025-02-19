@@ -1,0 +1,142 @@
+ body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+            display: flex;
+        }
+        .side-nav {
+            background-color: #333;
+            width: 250px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+        }
+        .side-nav a {
+            color: #f2f2f2;
+            padding: 14px 16px;
+            text-decoration: none;
+            transition: background-color 0.3s;
+            border-radius: 5px;
+            margin: 5px 0;
+        }
+        .logout{
+            position: absolute;
+            display: flex;
+            bottom: 10px;
+            left: 17px;
+        }
+        .side-nav a:hover {
+            background-color: #575757;
+            color: white;
+        }
+        .side-nav .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .side-nav .nav-links {
+            flex-grow: 1;
+        }
+        .side-nav .logout {
+            margin-top: auto;
+        }
+        .content {
+            flex-grow: 1;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .search-bar {
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+        }
+        .search-bar input {
+            width: 60%;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+        .search-bar button {
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            background-color: #333;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .search-bar button:hover {
+            background-color: #575757;
+        }
+        .categories {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 100px;
+            min-height: 100vh;
+        }
+        .category-card {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            text-align: center;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .category-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+        .category-card img {
+            width: 100%;
+            border-radius: 10px;
+        }
+        .category-card a {
+            color: #333;
+            text-decoration: none;
+            font-size: 18px;
+            font-weight: bold;
+            display: block;
+            margin-top: 10px;
+        }
+        .category-card a:hover {
+            text-decoration: underline;
+        }
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+            }
+            .side-nav {
+                width: 100%;
+                height: auto;
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: center;
+                padding: 10px;
+            }
+            .side-nav a {
+                margin: 5px;
+            }
+            .side-nav .logo {
+                width: 100%;
+                text-align: center;
+                margin-bottom: 10px;
+            }
+            .side-nav .logout {
+                margin-top: 0;
+            }
+            .search-bar input {
+                width: 80%;
+            }
+        }
