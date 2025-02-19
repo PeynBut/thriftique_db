@@ -2,31 +2,53 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Login</title>
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <link rel="stylesheet" href="login.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <script src="script.js" defer></script>
+    <title>Thriftique | Login & Registration</title>
 </head>
 <body>
-    <div class="container">
-        <h2>Admin Login</h2>
-        <form id="loginForm">
-            <div class="input-group">
-                <label for="email">Email</label>
-                <input type="email" id="email" placeholder="admin@example.com" required>
+ <div class="wrapper">
+    <nav class="nav">
+        <div class="nav-logo">
+            <img id="logo" src="login/Preview.png">
+        </div>
+        <div class="nav-menu-btn">
+            <i class="bx bx-menu" onclick="myMenuFunction()"></i>
+        </div>
+    </nav>
+
+    <div class="form-box">
+        <div class="login-container" id="login">
+            <header>Login</header>
+            <div class="input-box">
+                <input type="text" class="input-field" minlength="1" maxlength="25" placeholder="Username or Email">
+                <i class="bx bx-user"></i>
             </div>
-            <div class="input-group password-group">
-                <label for="password">Password</label>
-                <div class="password-container">
-                    <input type="password" id="password" placeholder="********" required minlength="8">
-                    <i class="fa-solid fa-eye" id="togglePassword"></i> <!-- Eye Icon -->
+            <div class="input-box">
+                <input type="password" class="input-field" minlength="8" maxlength="15" placeholder="Password">
+                <i class="bx bx-lock-alt"></i>
+            </div>
+            <div class="input-box">
+                <input type="submit" class="submit" value="Sign In">
+            </div>
+            <div class="two-col">
+                <div class="one">
+                    <input type="checkbox" id="login-check">
+                    <label for="login-check"> Remember Me</label>
+                </div>
+                <div class="two">
+                    <label><a href="#">Forgot password?</a></label>
                 </div>
             </div>
-            <button type="submit">Login</button>
-            <p class="register-link">Don't have an account? <a href="admin_register.html">Register</a></p>
-        </form>
+        </div>
     </div>
+</div>   
 
+</body>
+</html>
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             // Toggle Password Visibility
