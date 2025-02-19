@@ -51,7 +51,7 @@ $password = trim($data['password']);
 
 // Database credentials
 $host = "localhost";
-$dbname = "thriftique";
+$dbname = "thriftique_db";
 $username = "root";
 $passwordDB = ""; // Use a different variable name for the DB password
 
@@ -92,10 +92,3 @@ echo json_encode([
     "admin_name" => $user['first_name']
 ]);
 ?>
-<!--             } catch (error) {
-                console.error("Error:", error);
-                alert("An error occurred. Please try again.");
-            }
-        });
-    });
- -->
