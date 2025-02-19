@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thriftique Categories</title>
+    <link rel="stylesheet" href="dashboard.css">
+    <link rel="stylesheet" href="category.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+</head>
+<body>
+    <div class="top-bar">
+        <div class="menu-toggle" onclick="toggleMenu()">☰</div>
+        <h2 style="margin-left: 20px;">Thriftique Categories</h2>
+    </div>
+    <div class="sidebar" id="sidebar">
+        <a href="dashboard.html">🏠 Dashboard</a>
+        <a href="product.html">🛍 Products</a>
+        <a href="categories.html">📂 Categories</a>
+        <a href="analytics.html">📊 Analytics</a>
+        <a href="settings.html">⚙️ Settings</a>
+    </div>
+    <div class="content" id="content">
+        <div class="category-container">
+            <div class="category-header">
+                <h2>Thrift Categories</h2>
+                <button class="add-btn" onclick="addCategory()">➕ Add Category</button>
+            </div>
+            <ul class="category-list" id="category-list">
+                <li class="category-item">Vintage Clothing <span>
+                    <button class="edit-btn">✏️ Edit</button>
+                    <button class="delete-btn">🗑 Delete</button>
+                </span></li>
+                <li class="category-item">Retro Accessories <span>
+                    <button class="edit-btn">✏️ Edit</button>
+                    <button class="delete-btn">🗑 Delete</button>
+                </span></li>
+                <li class="category-item">Preloved Furniture <span>
+                    <button class="edit-btn">✏️ Edit</button>
+                    <button class="delete-btn">🗑 Delete</button>
+                </span></li>
+            </ul>
+        </div>
+    </div>
+    <script>
+        function toggleMenu() {
+            document.getElementById('sidebar').classList.toggle('active');
+            document.getElementById('content').classList.toggle('shift');
+        }
+        function addCategory() {
+            let name = prompt("Enter new category name:");
+            if (name) {
+                let list = document.getElementById("category-list");
+                let li = document.createElement("li");
+                li.classList.add("category-item");
+                li.innerHTML = `${name} <span>
+                    <button class='edit-btn'>✏️ Edit</button>
+                    <button class='delete-btn'>🗑 Delete</button>
+                </span>`;
+                list.appendChild(li);
+            }
+        }
+    </script>
+</body>
+</html>

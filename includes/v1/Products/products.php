@@ -1,8 +1,8 @@
 <?php
 
 header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
+header("Access-Control-Allow-Methods: POST");
+header("Access-Control-Allow-Headers: Content-Type");
 
 // Database connection (update with your details)
 $host = 'localhost';
@@ -13,12 +13,6 @@ $conn = new mysqli($host, $username, $password, $dbname);
 
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
-}
-
-// Handle preflight requests
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    header("HTTP/1.1 200 OK");
-    exit;
 }
 
 // Handle form submission
@@ -49,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 if ($stmt->execute()) {
                     echo json_encode(['success' => true, 'message' => 'Product added successfully']);
                 } else {
-                    echo json_encode(['error' => true, 'message' => 'Error adding product to database', 'error_details' => $stmt->error]);
+                    echo json_encode(['error' => true, 'message' => 'Error adding product to database']);
                 }
             } else {
                 echo json_encode(['error' => true, 'message' => 'Image upload failed']);
