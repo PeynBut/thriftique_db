@@ -8,54 +8,12 @@ error_reporting(E_ALL);
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 
-// Log raw input and method details for debugging
-file_put_contents("php://stderr", "Request received!\n", FILE_APPEND);
-error_log("Received request method: " . $_SERVER['REQUEST_METHOD']);
-
-// Enable CORS headers to allow cross-origin requests
-header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: POST, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type, Authorization");
-
-// Handle preflight request (for OPTIONS)
-if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
-    http_response_code(200);
-    exit();
-}
-
-// Check if the request method is POST
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    echo json_encode(["error" => true, "message" => "Invalid request method. Expected POST."]);
-    exit();
-}
-
-// Get the raw POST data (JSON)
-$input = file_get_contents("php://input");
-$data = json_decode($input, true);
-
-// If decoding JSON fails
-if (!$data) {
-    echo json_encode(["error" => true, "message" => "Invalid JSON format."]);
-    exit();
-}
-
-// Validate required fields (email and password)
-if (!isset($data['email']) || !isset($data['password'])) {
-    echo json_encode(["error" => true, "message" => "Email and Password are required."]);
-    exit();
-}
-
-// Sanitize email and password
-$email = trim($data['email']);
-$password = trim($data['password']);
-
 // Database credentials
 $host = "localhost";
-$dbname = "thriftique_db";
+$dbname = "thriftique";
 $username = "root";
 $passwordDB = ""; // Use a different variable name for the DB password
 
-// Try to connect to the database
 try {
     $pdo = new PDO("mysql:host=$host;dbname=$dbname", $username, $passwordDB);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -64,31 +22,93 @@ try {
     die(json_encode(["error" => true, "message" => "Database connection failed."]));
 }
 
-// Check if the user exists in the database
-$stmt = $pdo->prepare("SELECT id, first_name, last_name, password FROM admins WHERE email = ?");
-$stmt->execute([$email]);
-$user = $stmt->fetch(PDO::FETCH_ASSOC);
+// Handle login request
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $email = trim($_POST['email'] ?? '');
+    $password = trim($_POST['password'] ?? '');
 
-// If no user found
-if (!$user) {
-    echo json_encode(["error" => true, "message" => "Invalid email or password."]);
+    if (!$email || !$password) {
+        echo json_encode(["error" => true, "message" => "Email and Password are required."]);
+        exit();
+    }
+
+    $stmt = $pdo->prepare("SELECT id, first_name, last_name, password FROM admins WHERE email = ?");
+    $stmt->execute([$email]);
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$user || !password_verify($password, $user['password'])) {
+        echo json_encode(["error" => true, "message" => "Invalid email or password."]);
+        exit();
+    }
+
+    $_SESSION['admin_id'] = $user['id'];
+    $_SESSION['admin_name'] = $user['first_name'];
+    echo json_encode(["error" => false, "message" => "Login successful!", "admin_name" => $user['first_name']]);
     exit();
 }
-
-// Verify the password
-if (!password_verify($password, $user['password'])) {
-    echo json_encode(["error" => true, "message" => "Invalid email or password."]);
-    exit();
-}
-
-// Set session variables if login is successful
-$_SESSION['admin_id'] = $user['id'];
-$_SESSION['admin_name'] = $user['first_name'];
-
-// Return success message with admin name
-echo json_encode([
-    "error" => false,
-    "message" => "Login successful!",
-    "admin_name" => $user['first_name']
-]);
 ?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login</title>
+    <link rel="stylesheet" href="login.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="login.css">
+</head>
+<body>
+    <div class="container">
+        <h2>Admin Login</h2>
+        <form id="loginForm">
+            <div class="input-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" placeholder="admin@example.com" required>
+            </div>
+            <div class="input-group password-group">
+                <label for="password">Password</label>
+                <div class="password-container">
+                    <input type="password" id="password" name="password" placeholder="********" required minlength="8">
+                    <i class="fa-solid fa-eye" id="togglePassword"></i>
+                </div>
+            </div>
+            <button type="submit">Login</button>
+            <p class="register-link">Don't have an account? <a href="admin_register.php">Register</a></p>
+        </form>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const passwordField = document.getElementById("password");
+            const togglePassword = document.getElementById("togglePassword");
+
+            togglePassword.addEventListener("click", function () {
+                const isPassword = passwordField.type === "password";
+                passwordField.type = isPassword ? "text" : "password";
+                this.classList.toggle("fa-eye-slash", isPassword);
+                this.classList.toggle("fa-eye", !isPassword);
+            });
+
+            document.getElementById('loginForm').addEventListener('submit', async function (event) {
+                event.preventDefault();
+
+                const formData = new FormData(this);
+                try {
+                    const response = await fetch("login.php", {
+                        method: 'POST',
+                        body: formData
+                    });
+                    const data = await response.json();
+                    alert(data.message);
+                    if (!data.error) {
+                        window.location.href = 'dashboard.html';
+                    }
+                } catch (error) {
+                    alert('Login failed. Please check your server.');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

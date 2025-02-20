@@ -4,16 +4,13 @@ header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
 
-
-require_once '../DBoperations.php';
+require_once 'C:/xampp2/htdocs/thriftique_db/includes/DBoperations.php';
 
 $db = new DBconnection();
 $con = $db->connection();
 
 if ($con->connect_error) {
-    die("Database connection failed: " . $con->connect_error);
-} else {
-    echo "Database connection successful!";
+    die(json_encode(["error" => true, "message" => "Database connection failed: " . $con->connect_error]));
 }
 
 // Handle preflight requests (CORS)
@@ -33,16 +30,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             ORDER BY month ASC";
 
     $result = $con->query($sql);
-
     $data = [];
+
     if ($result) {
         while ($row = $result->fetch_assoc()) {
             $data[] = $row;
         }
-        echo json_encode($data);
+        echo json_encode($data); // ✅ Now returns ONLY JSON
     } else {
         echo json_encode(['error' => true, 'message' => 'Query execution failed']);
     }
+    exit;
 }
 
 // Handle POST request for adding products
@@ -84,6 +82,7 @@ elseif ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_PO
     } else {
         echo json_encode(['error' => true, 'message' => 'Image is required']);
     }
+    exit;
 }
 
 // Close connection
