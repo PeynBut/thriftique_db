@@ -56,7 +56,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <title>Admin Login</title>
     <link rel="stylesheet" href="login.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-    <link rel="stylesheet" href="login.css">
 </head>
 <body>
     <div class="container">
@@ -74,7 +73,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
             </div>
             <button type="submit">Login</button>
-            <p class="register-link">Don't have an account? <a href="admin_register.php">Register</a></p>
+            <p class="register-link">Don't have an account? <a href="adminregister.php">Register</a></p>
         </form>
     </div>
 

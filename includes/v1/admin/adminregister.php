@@ -169,47 +169,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         });
     </script>
-
-    <style>
-        .password-container {
-            position: relative;
-            display: flex;
-            align-items: center;
-        }
-        .password-container input {
-            width: 100%;
-            padding-right: 35px;
-        }
-        .password-container i {
-            position: absolute;
-            right: 10px;
-            cursor: pointer;
-            color: #555;
-            font-size: 18px;
-        }
-        .toast {
-            visibility: hidden;
-            min-width: 250px;
-            background-color: #333;
-            color: white;
-            text-align: center;
-            padding: 16px;
-            position: fixed;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            border-radius: 5px;
-        }
-        .toast.show {
-            visibility: visible;
-            animation: fadeInOut 3s;
-        }
-        @keyframes fadeInOut {
-            0% {opacity: 0;}
-            20% {opacity: 1;}
-            80% {opacity: 1;}
-            100% {opacity: 0;}
-        }
-    </style>
 </body>
 </html>
