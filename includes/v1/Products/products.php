@@ -95,13 +95,14 @@ $conn->close();
 <body>
     <div class="top-bar">
         <div class="menu-toggle" onclick="toggleMenu()">☰</div>
-        <h2 style="margin-left: 20px;">Product Management</h2>
+        <h2 style="padding-top: 20px; padding-left: 20px;">Product Management</h2>
     </div>
     <div class="sidebar" id="sidebar">
         <a href="http://localhost/thriftique_db/includes/v1/admin/dashboard.html">🏠 Dashboard</a>
         <a href="http://localhost/thriftique_db/includes/v1/Products/products.php">📦 Products</a>
-        <a href="http://localhost/thriftique_db/includes/v1/Categories/categories.html">📂 Categories</a>
-        <a href="http://localhost/thriftique_db/includes/v1/analytic/analytics.php">📊 Analytics</a>
+        <a href="http://localhost/thriftique_db/includes/v1/Orders/Order.php">📦 Order</a>
+        <a href="http://localhost/thriftique_db/includes/v1/Categories/Categories.php">📂 Categories</a>
+        <a href="http://localhost/thriftique_db/includes/v1/analytic/analytics.html">📊 Analytics</a>
         <a href="http://localhost/thriftique_db/includes/v1/admin/settings.html">⚙️ Settings</a>
     </div>
     <div class="content" id="content">
