@@ -7,14 +7,17 @@
 }
 
 body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #f4f4f4;
     display: flex;
-    align-items: center;
     justify-content: center;
+    align-items: center;
     height: 100vh;
     margin: 0;
-    background-repeat: no-repeat;
-    background-image: url("login/bg\ image\ thriftiqye.jpg");
+    background-image: url('bg image thriftiqye.jpg');
     background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
 }
 
 .container {
@@ -105,4 +108,8 @@ button:hover {
     color: #555;
     font-size: 18px;
     pointer-events: auto; /* Ensure clickable */
+}
+.register-link {
+    margin-top: 15px;
+    font-size: 14px;
 }
