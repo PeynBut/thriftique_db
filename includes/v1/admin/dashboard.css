@@ -93,3 +93,61 @@ body {
     font-weight: bold;
     color: #007bff;
 }
+
+.notification-icon {
+    position: absolute;
+    top: 15px;
+    right: 30px;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.notification-icon .badge {
+    background: red;
+    color: white;
+    font-size: 12px;
+    padding: 3px 7px;
+    border-radius: 50%;
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    display: none;
+}
+
+.notifications {
+    position: absolute;
+    top: 50px;
+    right: 20px;
+    width: 250px;
+    background: white;
+    border-radius: 5px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+    padding: 10px;
+    display: none;
+}
+
+.notifications h3 {
+    margin: 0;
+    font-size: 16px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid #ddd;
+}
+
+.notifications ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.notifications li {
+    padding: 8px;
+    border-bottom: 1px solid #ddd;
+}
+
+.notifications li:last-child {
+    border-bottom: none;
+}
+
+.notifications.show {
+    display: block;
+}
