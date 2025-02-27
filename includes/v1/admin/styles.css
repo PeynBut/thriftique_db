@@ -67,7 +67,7 @@ body {
 .form-group button {
     width: 100%;
     padding: 12px;
-    background-color: #28a745;
+    background: #007bff;
     border: none;
     border-radius: 5px;
     color: #fff;
@@ -78,7 +78,7 @@ body {
 }
 
 .form-group button:hover {
-    background-color: #218838;
+    background: #0056b3;
 }
 
 /* Toast Styling */
