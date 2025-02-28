@@ -8,98 +8,153 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/js/all.min.js"></script>
 </head>
 <body>
-    <div class="top-bar">
-        <div class="menu-toggle" onclick="toggleMenu()">☰</div>
-        <h2>Order Management</h2>
-    </div>
-    
-    <div class="sidebar" id="sidebar">
-        <a href="http://localhost/thriftique_db/includes/v1/admin/dashboard.html">🏠 Dashboard</a>
-        <a href="http://localhost/thriftique_db/includes/v1/Products/products.php">📦 Products</a>
-        <a href="http://localhost/thriftique_db/includes/v1/Orders/Order.html">📦 Orders</a>
-        <a href="http://localhost/thriftique_db/includes/v1/Categories/Categories.php">📂 Categories</a>
-        <a href="http://localhost/thriftique_db/includes/v1/analytic/analytics.html">📊 Analytics</a>
-        <a href="http://localhost/thriftique_db/includes/v1/admin/settings.html">⚙️ Settings</a>
-        <a href="http://localhost/thriftique_db/includes/v1/admin/logout.php" class="logout" onclick="logoutUser()">🚪 Logout</a>
-    </div>
-    
-    <div class="content" id="content">
-        <h2>Orders</h2>
-        <button onclick="fetchOrders()">Refresh Orders</button>
-        <table id="ordersTable">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>User ID</th>
-                    <th>Product ID</th>
-                    <th>Quantity</th>
-                    <th>Total Price</th>
-                    <th>Status</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-            </tbody>
-        </table>
-    </div>
-    
-    <script>
-        function toggleMenu() {
-            const sidebar = document.getElementById('sidebar');
-            const content = document.getElementById('content');
-            sidebar.classList.toggle('active');
-            content.classList.toggle('shift');
-        }
+  <!-- Top Navigation Bar -->
+  <div class="top-bar">
+      <div class="menu-toggle" onclick="toggleMenu()">☰</div>
+      <h2 style="margin-left: 20px;">Order Management</h2>
 
-        function fetchOrders() {
-            fetch('http://localhost/thriftique_db/includes/v1/Products/products.php', { method: 'GET' })
-                .then(response => response.json())
-                .then(data => {
-                    let tableBody = document.querySelector("#ordersTable tbody");
-                    tableBody.innerHTML = "";
-                    data.orders.forEach(order => {
-                        let row = `<tr>
-                            <td>${order.id}</td>
-                            <td>${order.user_id}</td>
-                            <td>${order.product_id}</td>
-                            <td>${order.quantity}</td>
-                            <td>$${order.total_price}</td>
-                            <td>${order.status}</td>
-                            <td>
-                                <button onclick="updateOrder(${order.id})">Update</button>
-                                <button onclick="deleteOrder(${order.id})">Delete</button>
-                            </td>
-                        </tr>`;
-                        tableBody.innerHTML += row;
-                    });
-                })
-                .catch(error => console.error('Error fetching orders:', error));
-        }
+      <!-- Notification Icon -->
+      <div class="notification-container" onclick="toggleNotifications(event)">
+          <i class="fas fa-bell notification-bell" aria-label="Notifications"></i>
+          <span class="badge" id="notification-count" style="display: none;">0</span>
 
-        function updateOrder(orderId) {
-            let newStatus = prompt("Enter new status:");
-            if (newStatus) {
-                fetch('http://localhost/thriftique_db/includes/v1/Orders/Order.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'update', id: orderId, status: newStatus })
-                }).then(response => response.json())
-                .then(data => { alert(data.message); fetchOrders(); });
-            }
-        }
+          <!-- Notifications Dropdown -->
+          <div class="notification-dropdown" id="notifications">
+              <h4>Notifications</h4>
+              <ul id="notification-list">
+                  <li>No new notifications</li>
+              </ul>
+          </div>
+      </div>
+  </div>
 
-        function deleteOrder(orderId) {
-            if (confirm("Are you sure you want to delete this order?")) {
-                fetch('http://localhost/thriftique_db/includes/v1/Orders/Order.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'delete', id: orderId })
-                }).then(response => response.json())
-                .then(data => { alert(data.message); fetchOrders(); });
-            }
-        }
+  <div class="sidebar" id="sidebar">
+      <a href="http://localhost/thriftique_db/includes/v1/admin/dashboard.html">🏠 Dashboard</a>
+      <a href="http://localhost/thriftique_db/includes/v1/Products/products.php">📦 Products</a>
+      <a href="http://localhost/thriftique_db/includes/v1/Orders/Order.html">📦 Orders</a>
+      <a href="http://localhost/thriftique_db/includes/v1/Categories/Categories.php">📂 Categories</a>
+      <a href="http://localhost/thriftique_db/includes/v1/analytic/analytics.html">📊 Analytics</a>
+      <a href="http://localhost/thriftique_db/includes/v1/admin/settings.html">⚙️ Settings</a>
+      <a href="http://localhost/thriftique_db/includes/v1/admin/logout.php" class="logout" onclick="logoutUser()">🚪 Logout</a>
+  </div>
 
-        fetchOrders(); // Load orders on page load
-    </script>
+  <div class="content" id="content">
+      <h2>Orders</h2>
+      <button onclick="fetchOrders()">Refresh Orders</button>
+      <table id="ordersTable">
+          <thead>
+              <tr>
+                  <th>ID</th>
+                  <th>User ID</th>
+                  <th>Product ID</th>
+                  <th>Quantity</th>
+                  <th>Total Price</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+              </tr>
+          </thead>
+          <tbody></tbody>
+      </table>
+  </div>
+
+  <script>
+      function toggleMenu() {
+          const sidebar = document.getElementById('sidebar');
+          const content = document.getElementById('content');
+          sidebar.classList.toggle('active');
+          content.classList.toggle('shift');
+      }
+
+      function fetchOrders() {
+          fetch('http://localhost/thriftique_db/includes/v1/Products/products.php', { method: 'GET' })
+              .then(response => response.json())
+              .then(data => {
+                  let tableBody = document.querySelector("#ordersTable tbody");
+                  tableBody.innerHTML = "";
+                  data.orders.forEach(order => {
+                      let row = `<tr>
+                          <td>${order.id}</td>
+                          <td>${order.user_id}</td>
+                          <td>${order.product_id}</td>
+                          <td>${order.quantity}</td>
+                          <td>$${order.total_price}</td>
+                          <td>${order.status}</td>
+                          <td>
+                              <button onclick="updateOrder(${order.id})">Update</button>
+                              <button onclick="deleteOrder(${order.id})">Delete</button>
+                          </td>
+                      </tr>`;
+                      tableBody.innerHTML += row;
+                  });
+              })
+              .catch(error => console.error('Error fetching orders:', error));
+      }
+
+      function updateOrder(orderId) {
+          let newStatus = prompt("Enter new status:");
+          if (newStatus) {
+              fetch('http://localhost/thriftique_db/includes/v1/Orders/Order.php', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ action: 'update', id: orderId, status: newStatus })
+              }).then(response => response.json())
+              .then(data => { alert(data.message); fetchOrders(); });
+          }
+      }
+
+      function deleteOrder(orderId) {
+          if (confirm("Are you sure you want to delete this order?")) {
+              fetch('http://localhost/thriftique_db/includes/v1/Orders/Order.php', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ action: 'delete', id: orderId })
+              }).then(response => response.json())
+              .then(data => { alert(data.message); fetchOrders(); });
+          }
+      }
+
+      function toggleNotifications(event) {
+          event.stopPropagation(); // Prevents closing immediately when clicking inside
+          document.getElementById('notifications').classList.toggle('show');
+      }
+
+      function fetchNotifications() {
+          fetch('get_notifications.php')
+              .then(response => response.json())
+              .then(data => {
+                  let notificationList = document.getElementById('notification-list');
+                  let notificationCount = document.getElementById('notification-count');
+
+                  notificationList.innerHTML = "";
+                  if (data.length > 0) {
+                      notificationCount.style.display = "block";
+                      notificationCount.innerText = data.length;
+
+                      data.forEach(notification => {
+                          let li = document.createElement('li');
+                          li.innerText = notification.message;
+                          notificationList.appendChild(li);
+                      });
+                  } else {
+                      notificationList.innerHTML = "<li>No new notifications</li>";
+                      notificationCount.style.display = "none";
+                  }
+              })
+              .catch(error => console.error('Error fetching notifications:', error));
+      }
+
+      // Auto-fetch notifications every 5 seconds
+      setInterval(fetchNotifications, 5000);
+      fetchNotifications(); // Initial fetch on page load
+
+      // Close notifications when clicking outside
+      document.addEventListener("click", function(event) {
+          let notificationDropdown = document.getElementById('notifications');
+          if (!document.querySelector('.notification-container').contains(event.target)) {
+              notificationDropdown.classList.remove('show');
+          }
+      });
+
+  </script>
 </body>
 </html>

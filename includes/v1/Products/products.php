@@ -90,13 +90,29 @@ $conn->close();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Product Management</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="product.css">
 </head>
 <body>
-    <div class="top-bar">
-        <div class="menu-toggle" onclick="toggleMenu()">☰</div>
-        <h2 style="padding-top: 20px; padding-left: 20px;">Product Management</h2>
+<div class="top-bar">
+    <div class="menu-toggle" onclick="toggleMenu()">☰</div>
+    <h2 style="padding-top: 20px; padding-left: 20px;">Product Management</h2>
+
+    <!-- Notification Bell -->
+    <div class="notification-container" onclick="toggleNotifications()">
+        <i class="fas fa-bell notification-bell"></i>
+        <span class="badge" id="notification-count">0</span>
     </div>
+
+    <!-- Notifications Dropdown -->
+    <div class="notification-dropdown" id="notification-dropdown">
+        <h4>Notifications</h4>
+        <ul id="notification-list">
+            <li>No new notifications</li>
+        </ul>
+    </div>
+</div>
+
     <div class="sidebar" id="sidebar">
         <a href="http://localhost/thriftique_db/includes/v1/admin/dashboard.html">🏠 Dashboard</a>
         <a href="http://localhost/thriftique_db/includes/v1/Products/products.php">📦 Products</a>
@@ -257,6 +273,39 @@ function addProductToTable(product) {
     `;
     tableBody.insertBefore(newRow, tableBody.firstChild); // Add at the top
 }
+function toggleNotifications() {
+    document.getElementById('notification-dropdown').classList.toggle('show');
+}
+
+function fetchNotifications() {
+    fetch('get_notifications.php')
+        .then(response => response.json())
+        .then(data => {
+            let notificationList = document.getElementById('notification-list');
+            let notificationCount = document.getElementById('notification-count');
+
+            notificationList.innerHTML = "";
+            if (data.length > 0) {
+                notificationCount.style.display = "block";
+                notificationCount.innerText = data.length;
+
+                data.forEach(notification => {
+                    let li = document.createElement('li');
+                    li.innerText = notification.message;
+                    notificationList.appendChild(li);
+                });
+            } else {
+                notificationList.innerHTML = "<li>No new notifications</li>";
+                notificationCount.style.display = "none";
+            }
+        })
+        .catch(error => console.error('Error fetching notifications:', error));
+}
+
+// Auto-fetch notifications every 5 seconds
+setInterval(fetchNotifications, 5000);
+fetchNotifications();
+
     </script>
 </body>
 </html>

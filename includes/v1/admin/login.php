@@ -76,6 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <p class="register-link">Don't have an account? <a href="adminregister.php">Register</a></p>
         </form>
     </div>
+    
 
     <script>
         document.addEventListener("DOMContentLoaded", function () {

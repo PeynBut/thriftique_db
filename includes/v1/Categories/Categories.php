@@ -185,14 +185,153 @@ if ($isAjax) {
         .add-btn:hover {
             background: #218838;
         }
+/* Notification Container */
+.notification-container {
+    position: relative;
+    margin-left: auto;
+    cursor: pointer;
+    padding: 10px 15px;
+}
+
+/* Notification Bell */
+.notification-bell {
+    font-size: 24px;
+    color: #333; /* Slightly softer black */
+    transition: color 0.3s ease;
+}
+
+.notification-container:hover .notification-bell {
+    color: #007bff; /* Highlight on hover */
+}
+
+/* Notification Badge */
+.badge {
+    background: red;
+    color: white;
+    font-size: 12px;
+    padding: 3px 7px;
+    border-radius: 50%;
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    display: none;
+    font-weight: bold;
+    min-width: 18px;
+    text-align: center;
+}
+
+/* Notification Dropdown */
+.notification-dropdown {
+    position: absolute;
+    right: 0;
+    top: 50px;
+    background: white;
+    width: 320px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+    border-radius: 8px;
+    display: none;
+    z-index: 1000;
+    transform: translateY(-10px);
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+
+/* Show Dropdown with Smooth Animation */
+.notification-dropdown.show {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Dropdown Header */
+.notification-dropdown h4 {
+    padding: 12px;
+    background: #f1f1f1;
+    border-bottom: 1px solid #ddd;
+    font-size: 16px;
+    font-weight: bold;
+    margin: 0;
+}
+
+/* Notification List */
+.notification-dropdown ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    max-height: 250px;
+    overflow-y: auto;
+}
+
+/* Notification Items */
+.notification-dropdown li {
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.notification-dropdown li:hover {
+    background: #f8f9fa;
+}
+
+.notification-dropdown li:last-child {
+    border-bottom: none;
+}
+
+/* Sidebar Logout Button */
+.sidebar a.logout {
+    color: red;
+    font-weight: bold;
+    margin-top: 20px;
+    display: block;
+    text-align: center;
+    padding: 10px;
+    border-radius: 5px;
+    transition: background 0.3s ease;
+}
+
+.sidebar a.logout:hover {
+    background-color: #ffdddd;
+}
+
+/* Logout Icon Fix */
+.sidebar a.logout i {
+    margin-right: 5px;
+}
+
+/* Mobile Optimization */
+@media (max-width: 768px) {
+    .notification-dropdown {
+        width: 90%;
+        right: 5px;
+    }
+}
+
     </style>
 </head>
 <body>
 
-    <div class="top-bar">
-        <div class="menu-toggle" onclick="toggleMenu()">☰</div>
-        <h2 style="margin-left: 20px;">Thriftique Categories</h2>
+  <!-- Top Navigation Bar -->
+<div class="top-bar">
+    <div class="menu-toggle" onclick="toggleMenu()">☰</div>
+    <h2 style="margin-left: 20px;">Thriftique Categories</h2>
+
+    <!-- Notification Icon -->
+    <div class="notification-container" onclick="toggleNotifications()">
+        <i class="fas fa-bell notification-bell" aria-label="Notifications"></i>
+        <span class="badge" id="notification-count">0</span>
+
+        <!-- Notifications Dropdown -->
+        <div class="notification-dropdown" id="notifications">
+            <h4>Notifications</h4>
+            <ul id="notification-list">
+                <li>No new notifications</li>
+            </ul>
+        </div>
     </div>
+</div>
+
 
     <div class="sidebar" id="sidebar">
         <a href="http://localhost/thriftique_db/includes/v1/admin/dashboard.html">🏠 Dashboard</a>
@@ -209,6 +348,7 @@ if ($isAjax) {
         <button class="add-btn" onclick="addCategory()">➕ Add Category</button>
         <div id="category-list" class="categories-overview"></div>
     </div>
+ 
     
     <script>
 document.addEventListener("DOMContentLoaded", function () {
@@ -293,6 +433,37 @@ function toggleMenu() {
     sidebar.classList.toggle('active'); // Toggle sidebar
     content.classList.toggle('shift'); // Shift content       
 }
+function toggleNotifications() {
+            document.getElementById('notifications').classList.toggle('show');
+        }
+
+        function fetchNotifications() {
+            fetch('get_notifications.php')
+                .then(response => response.json())
+                .then(data => {
+                    let notificationList = document.getElementById('notification-list');
+                    let notificationCount = document.getElementById('notification-count');
+
+                    notificationList.innerHTML = "";
+                    if (data.length > 0) {
+                        notificationCount.style.display = "block";
+                        notificationCount.innerText = data.length;
+
+                        data.forEach(notification => {
+                            let li = document.createElement('li');
+                            li.innerText = notification.message;
+                            notificationList.appendChild(li);
+                        });
+                    } else {
+                    notificationList.innerHTML = "<li>No new notifications</li>";
+                    notificationCount.style.display = "none";
+                    }
+                })
+                .catch(error => console.error('Error fetching notifications:', error));
+        }
+
+            setInterval(fetchNotifications, 5000); // Fetch every 5 seconds
+            fetchNotifications(); // Load initially
     </script>
 </body>
 </html>
