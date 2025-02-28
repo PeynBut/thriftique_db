@@ -4,7 +4,7 @@ header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
 
-require_once 'C:/xampp2/htdocs/thriftique_db/includes/DBoperations.php';
+require_once "../../DBconnection.php";
 
 $db = new DBconnection();
 $con = $db->connection();

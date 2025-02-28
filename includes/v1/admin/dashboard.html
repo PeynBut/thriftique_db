@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 </head>
 <body>
+    <!-- Top Navigation Bar -->
     <div class="top-bar">
         <div class="menu-toggle" onclick="toggleMenu()">☰</div>
         <h2 style="margin-left: 20px;">Dashboard</h2>
@@ -16,34 +17,27 @@
             <span class="badge" id="notification-count">0</span>
         </div>
     </div>
+
+    <!-- Notifications Dropdown -->
     <div class="notifications" id="notifications">
         <h3>Notifications</h3>
         <ul id="notification-list">
             <li>No new notifications</li>
         </ul>
     </div>
-    
+
+    <!-- Sidebar Navigation -->
     <div class="sidebar" id="sidebar">
         <a href="http://localhost/thriftique_db/includes/v1/admin/dashboard.html">🏠 Dashboard</a>
         <a href="http://localhost/thriftique_db/includes/v1/Products/products.php">📦 Products</a>
-        <a href="http://localhost/thriftique_db/includes/v1/Orders/Order.php">📦 Order</a>
+        <a href="http://localhost/thriftique_db/includes/v1/Orders/Order.html">📦 Orders</a>
         <a href="http://localhost/thriftique_db/includes/v1/Categories/Categories.php">📂 Categories</a>
         <a href="http://localhost/thriftique_db/includes/v1/analytic/analytics.html">📊 Analytics</a>
         <a href="http://localhost/thriftique_db/includes/v1/admin/settings.html">⚙️ Settings</a>
+        <a href="http://localhost/thriftique_db/includes/v1/admin/logout.php" class="logout" onclick="logoutUser()">🚪 Logout</a>
     </div>
-    <div class="notification-icon" onclick="toggleNotifications()">
-        <i class="fas fa-bell"></i>
-        <span class="badge" id="notification-count">0</span>
-    </div>
-</div>
-<div class="notifications" id="notifications">
-    <h3>Notifications</h3>
-    <ul id="notification-list">
-        <li>No new notifications</li>
-    </ul>
-</div>
-    
-    </div>
+
+    <!-- Dashboard Content -->
     <div class="content" id="content">
         <h2>Welcome to your Dashboard</h2>
         <p>Select an option from the sidebar to get started.</p>
@@ -68,11 +62,20 @@
             </div>
         </div>
     </div>
+
     <script>
+        // Toggle Sidebar
+        function toggleMenu() {
+            document.getElementById('sidebar').classList.toggle('active');
+            document.getElementById('content').classList.toggle('shift');
+        }
+
+        // Toggle Notifications Dropdown
         function toggleNotifications() {
             document.getElementById('notifications').classList.toggle('show');
         }
 
+        // Fetch Notifications
         function fetchNotifications() {
             fetch('get_notifications.php')
                 .then(response => response.json())
@@ -91,51 +94,35 @@
                             notificationList.appendChild(li);
                         });
                     } else {
-                    notificationList.innerHTML = "<li>No new notifications</li>";
-                    notificationCount.style.display = "none";
+                        notificationList.innerHTML = "<li>No new notifications</li>";
+                        notificationCount.style.display = "none";
                     }
                 })
                 .catch(error => console.error('Error fetching notifications:', error));
         }
 
-            setInterval(fetchNotifications, 5000); // Fetch every 5 seconds
-            fetchNotifications(); // Load initially
+        // Periodically Fetch Notifications
+        setInterval(fetchNotifications, 5000); // Fetch every 5 seconds
+        fetchNotifications(); // Load initially
 
-        function toggleMenu() {
-                document.getElementById('sidebar').classList.toggle('active');
-                document.getElementById('content').classList.toggle('shift');
-            }
-            function toggleNotifications() {
-                document.getElementById('notifications').classList.toggle('show');
-            }
-    
-            function fetchNotifications() {
-                fetch('get_notifications.php')
-                    .then(response => response.json())
-                    .then(data => {
-                        let notificationList = document.getElementById('notification-list');
-                        let notificationCount = document.getElementById('notification-count');
-    
-                        notificationList.innerHTML = "";
-                        if (data.length > 0) {
-                            notificationCount.style.display = "block";
-                            notificationCount.innerText = data.length;
-    
-                            data.forEach(notification => {
-                                let li = document.createElement('li');
-                                li.innerText = notification.message;
-                                notificationList.appendChild(li);
-                            });
-                        } else {
-                        notificationList.innerHTML = "<li>No new notifications</li>";
-                        notificationCount.style.display = "none";
-                        }
-                    })
-                    .catch(error => console.error('Error fetching notifications:', error));
-            }
-    
-                setInterval(fetchNotifications, 5000); // Fetch every 5 seconds
-                fetchNotifications(); // Load initially
+        // Logout User
+        function logoutUser() {
+            fetch('http://localhost/thriftique_db/includes/v1/admin/logout.php', {
+                method: 'GET',
+                credentials: 'include'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Redirect to login page after logout
+                    window.location.href = "http://localhost/thriftique_db/includes/v1/admin/login.php";
+                } else {
+                    alert("Logout failed. Please try again.");
+                }
+            })
+            .catch(error => console.error('Error logging out:', error));
+        }
+        
     </script>
 </body>
 </html>

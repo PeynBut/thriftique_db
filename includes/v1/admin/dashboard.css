@@ -208,3 +208,14 @@ body {
 .notifications.show {
     display: block;
 }
+.sidebar a.logout {
+    color: red;
+    font-weight: bold;
+    margin-top: 20px;
+}
+.sidebar a.logout:hover {
+    background-color: #ffdddd;
+}
+.sidebar a.logout i {
+    margin-right: 5px;
+}
