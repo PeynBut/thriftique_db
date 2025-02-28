@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Management</title>
+    <link rel="stylesheet" href="order.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/js/all.min.js"></script>
+</head>
+<body>
+    <div class="top-bar">
+        <div class="menu-toggle" onclick="toggleMenu()">☰</div>
+        <h2>Order Management</h2>
+    </div>
+    
+    <div class="sidebar" id="sidebar">
+        <a href="http://localhost/thriftique_db/includes/v1/admin/dashboard.html">🏠 Dashboard</a>
+        <a href="http://localhost/thriftique_db/includes/v1/Products/products.php">📦 Products</a>
+        <a href="http://localhost/thriftique_db/includes/v1/Orders/Order.html">📦 Orders</a>
+        <a href="http://localhost/thriftique_db/includes/v1/Categories/Categories.php">📂 Categories</a>
+        <a href="http://localhost/thriftique_db/includes/v1/analytic/analytics.html">📊 Analytics</a>
+        <a href="http://localhost/thriftique_db/includes/v1/admin/settings.html">⚙️ Settings</a>
+        <a href="http://localhost/thriftique_db/includes/v1/admin/logout.php" class="logout" onclick="logoutUser()">🚪 Logout</a>
+    </div>
+    
+    <div class="content" id="content">
+        <h2>Orders</h2>
+        <button onclick="fetchOrders()">Refresh Orders</button>
+        <table id="ordersTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>User ID</th>
+                    <th>Product ID</th>
+                    <th>Quantity</th>
+                    <th>Total Price</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+    
+    <script>
+        function toggleMenu() {
+            const sidebar = document.getElementById('sidebar');
+            const content = document.getElementById('content');
+            sidebar.classList.toggle('active');
+            content.classList.toggle('shift');
+        }
+
+        function fetchOrders() {
+            fetch('http://localhost/thriftique_db/includes/v1/Products/products.php', { method: 'GET' })
+                .then(response => response.json())
+                .then(data => {
+                    let tableBody = document.querySelector("#ordersTable tbody");
+                    tableBody.innerHTML = "";
+                    data.orders.forEach(order => {
+                        let row = `<tr>
+                            <td>${order.id}</td>
+                            <td>${order.user_id}</td>
+                            <td>${order.product_id}</td>
+                            <td>${order.quantity}</td>
+                            <td>$${order.total_price}</td>
+                            <td>${order.status}</td>
+                            <td>
+                                <button onclick="updateOrder(${order.id})">Update</button>
+                                <button onclick="deleteOrder(${order.id})">Delete</button>
+                            </td>
+                        </tr>`;
+                        tableBody.innerHTML += row;
+                    });
+                })
+                .catch(error => console.error('Error fetching orders:', error));
+        }
+
+        function updateOrder(orderId) {
+            let newStatus = prompt("Enter new status:");
+            if (newStatus) {
+                fetch('http://localhost/thriftique_db/includes/v1/Orders/Order.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'update', id: orderId, status: newStatus })
+                }).then(response => response.json())
+                .then(data => { alert(data.message); fetchOrders(); });
+            }
+        }
+
+        function deleteOrder(orderId) {
+            if (confirm("Are you sure you want to delete this order?")) {
+                fetch('http://localhost/thriftique_db/includes/v1/Orders/Order.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'delete', id: orderId })
+                }).then(response => response.json())
+                .then(data => { alert(data.message); fetchOrders(); });
+            }
+        }
+
+        fetchOrders(); // Load orders on page load
+    </script>
+</body>
+</html>

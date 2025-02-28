@@ -100,23 +100,14 @@ $conn->close();
     <div class="sidebar" id="sidebar">
         <a href="http://localhost/thriftique_db/includes/v1/admin/dashboard.html">🏠 Dashboard</a>
         <a href="http://localhost/thriftique_db/includes/v1/Products/products.php">📦 Products</a>
-        <a href="http://localhost/thriftique_db/includes/v1/Orders/Order.php">📦 Order</a>
+        <a href="http://localhost/thriftique_db/includes/v1/Orders/Order.html">📦 Orders</a>
         <a href="http://localhost/thriftique_db/includes/v1/Categories/Categories.php">📂 Categories</a>
         <a href="http://localhost/thriftique_db/includes/v1/analytic/analytics.html">📊 Analytics</a>
         <a href="http://localhost/thriftique_db/includes/v1/admin/settings.html">⚙️ Settings</a>
+        <a href="http://localhost/thriftique_db/includes/v1/admin/logout.php" class="logout" onclick="logoutUser()">🚪 Logout</a>
     </div>
     <div class="content" id="content">
         <h2>Products</h2>
-
-        <!-- Product Creation Form -->
-        <form id="product-form" action="products.php" method="POST" enctype="multipart/form-data">
-            <input type="hidden" name="action" value="create">
-            <input type="text" name="name" placeholder="Product Name" required>
-            <textarea name="description" placeholder="Product Description" required></textarea>
-            <input type="number" name="price" placeholder="Product Price" required>
-            <input type="file" name="image" accept="image/*" required>
-            <button type="submit">Create Product</button>
-        </form>
 
         <!-- Product List Table -->
         <div class="products-container">
@@ -139,7 +130,8 @@ $conn->close();
                                 <td><?= htmlspecialchars($product['description']) ?></td>
                                 <td>$<?= number_format($product['price'], 2) ?></td>
                                 <td>
-                                    <button onclick="deleteProduct(<?= $product['id'] ?>)">🗑 Delete</button>
+                                <button onclick="editProduct(<?= $product['id'] ?>)">✏️ Edit</button>
+                                <button onclick="deleteProduct(<?= $product['id'] ?>)">🗑 Delete</button>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
@@ -152,6 +144,45 @@ $conn->close();
             </table>
         </div>
     </div>
+
+    <!-- Floating Action Button -->
+    <div class="fab" onclick="openProductModal()">+</div>
+
+    <!-- Modal for Product Creation -->
+    <div id="productModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeProductModal()">&times;</span>
+            <h2>Create New Product</h2>
+            <form id="product-form" action="products.php" method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="action" value="create">
+                <input type="text" name="name" placeholder="Product Name" required>
+                <textarea name="description" placeholder="Product Description" required></textarea>
+                <input type="number" name="price" placeholder="Product Price" required>
+                <input type="file" name="image" accept="image/*" required>
+                <button type="submit">Create Product</button>
+            </form>
+        </div>
+    </div>
+    <!-- Add this inside the <body> -->
+<!-- Edit Product Modal -->
+<!-- Modal for Editing Product -->
+<div id="editProductModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeEditProductModal()">&times;</span>
+        <h2>Edit Product</h2>
+        <form id="edit-product-form" action="update_product.php" method="POST" enctype="multipart/form-data">
+            <input type="hidden" name="action" value="update">
+            <input type="hidden" name="id" id="edit-product-id">
+            <input type="text" name="name" id="edit-product-name" placeholder="Product Name" required>
+            <textarea name="description" id="edit-product-description" placeholder="Product Description" required></textarea>
+            <input type="number" name="price" id="edit-product-price" placeholder="Product Price" required>
+            <input type="file" name="image" accept="image/*">
+            <button type="submit">Update Product</button>
+        </form>
+    </div>
+</div>
+</body>
+</html>
 
     <script>
         function toggleMenu() {
@@ -178,6 +209,54 @@ $conn->close();
                 .catch(error => console.error("Error:", error));
             }
         }
+        // Open the modal
+function openProductModal() {
+    document.getElementById('productModal').style.display = 'block';
+}
+
+// Close the modal
+function closeProductModal() {
+    document.getElementById('productModal').style.display = 'none';
+}
+
+// Handle form submission
+document.getElementById('product-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+
+    fetch('products.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            closeProductModal();
+            addProductToTable(data.product); // Add the new product to the table
+        } else {
+            alert(data.message);
+        }
+    })
+    .catch(error => console.error('Error:', error));
+});
+
+// Add new product to the table
+function addProductToTable(product) {
+    const tableBody = document.querySelector('.products-container tbody');
+    const newRow = document.createElement('tr');
+    newRow.id = `product-${product.id}`;
+    newRow.innerHTML = `
+        <td><img src="${product.image}" width="50"></td>
+        <td>${product.name}</td>
+        <td>${product.description}</td>
+        <td>$${parseFloat(product.price).toFixed(2)}</td>
+        <td>
+            <button onclick="deleteProduct(${product.id})">🗑 Delete</button>
+        </td>
+    `;
+    tableBody.insertBefore(newRow, tableBody.firstChild); // Add at the top
+}
     </script>
 </body>
 </html>
