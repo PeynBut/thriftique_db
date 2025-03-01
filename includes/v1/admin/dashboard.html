@@ -12,29 +12,35 @@
   
   <!-- Top Navigation Bar -->
   <div class="top-bar">
-      <div class="menu-toggle" onclick="toggleMenu()">☰</div>
-      <h2 style="margin-left: 20px;">Dashboard</h2>
-      <div class="notification-container" onclick="toggleNotifications()">
-          <i class="fas fa-bell notification-bell" aria-label="Notifications"></i>
-          <span class="badge" id="notification-count">0</span>
-          <div class="notification-dropdown" id="notifications">
-              <h4>Notifications</h4>
-              <ul id="notification-list">
-                  <li>No new notifications</li>
-              </ul>
-          </div>
-      </div>
-      <div class="user-menu">
+    <div class="menu-toggle" onclick="toggleMenu()">☰</div>
+    <h2 style="margin-left: 20px;">Thriftique Categories</h2>
+
+    <!-- Notification Icon -->
+    <div class="notification-container" onclick="toggleNotifications()">
+        <i class="fas fa-bell notification-bell" aria-label="Notifications"></i>
+        <span class="badge" id="notification-count">0</span>
+
+        <!-- Notifications Dropdown -->
+        <div class="notification-dropdown" id="notifications">
+            <h4>Notifications</h4>
+            <ul id="notification-list">
+                <li>No new notifications</li>
+            </ul>
+        </div>
+    </div>
+    <div class="user-menu">
         <div class="user-info" onclick="toggleUserMenu()">
             <span id="username">Admin</span> <!-- Placeholder for dynamic name -->
             <i class="fas fa-user-circle"></i>
         </div>
         <div class="user-dropdown" id="userDropdown">
             <a href="http://localhost/thriftique_db/includes/v1/admin/settings.html">⚙️ Settings</a>
-            <a href="logout.php" class="logout" onclick="logoutUser()">🚪 Logout</a>
+            <a href="http://localhost/thriftique_db/includes/v1/admin/logout.php" onclick="logoutUser()">🚪 Logout</a>
+            <a href="http://localhost/thriftique_db/includes/v1/admin/settings.html">🔒 Change Password</a>
         </div>
     </div> 
   </div>
+</div>
 
   <!-- Sidebar Navigation -->
   <div class="sidebar" id="sidebar">
@@ -51,9 +57,7 @@
       <h2>Welcome to your Dashboard</h2>
       <div class="dashboard-overview">
           <div class="card"><h3>Total Products</h3><p>120</p></div>
-          <div class="card"><h3>Total Categories</h3><p>15</p></div>
-          <div class="card"><h3>Monthly Sales</h3><p>$5,230</p></div>
-          <div class="card"><h3>Active Users</h3><p>320</p></div>
+          <div class="card"><h3>Users</h3><p>320</p></div>
       </div>
 
       <!-- Analytics Section -->
@@ -61,10 +65,8 @@
       <div class="analytics-container">
           <!-- Analytics Cards -->
           <div class="analytics-overview">
-              <div class="card"><h3>Total Sales</h3><p>$10,450</p></div>
+              <div class="card"><h3>Total Sales</h3><p>₱10,450</p></div>
               <div class="card"><h3>Orders This Month</h3><p>1,250</p></div>
-              <div class="card"><h3>New Customers</h3><p>320</p></div>
-              <div class="card"><h3>Returning Customers</h3><p>180</p></div>
           </div>
       </div>
       
@@ -102,8 +104,9 @@
             const ordersData = data.map(row => row.orders);
 
             updateCards(data);
-            createChart("salesChart", "Sales ($)", labels, salesData, "#007bff");
+            createChart("salesChart", "Sales (₱)", labels, salesData, "#007bff");
             createChart("ordersChart", "Orders", labels, ordersData, "#28a745");
+            
         } catch (error) {
             console.error("Error fetching data:", error);
         }
@@ -130,7 +133,7 @@
 
     function updateCards(data) {
         if (data.length > 0) {
-            document.querySelectorAll(".analytics-overview .card p")[0].textContent = `$${data.reduce((acc, row) => acc + parseFloat(row.sales), 0)}`;
+            document.querySelectorAll(".analytics-overview .card p")[0].textContent = `₱${data.reduce((acc, row) => acc + parseFloat(row.sales), 0).toLocaleString()}`;
             document.querySelectorAll(".analytics-overview .card p")[1].textContent = data.reduce((acc, row) => acc + parseInt(row.orders), 0);
         }
     }
@@ -173,6 +176,52 @@
             })
             .catch(error => console.error("Error logging out user:", error));
     }
+    document.addEventListener("DOMContentLoaded", async function () {
+        try {
+            const response = await fetch("http://localhost/thriftique_db/includes/v1/admin/get_android_user.php");
+            const data = await response.json();
+    
+            if (!data.error) {
+                // Loop through cards and find the one with 'Users'
+                document.querySelectorAll(".card h3").forEach((h3) => {
+                    if (h3.innerText.includes("Users")) {
+                        let userCountElement = h3.nextElementSibling; // Select the <p> next to <h3>
+                        if (userCountElement) {
+                            userCountElement.textContent = data.user_count; // Update the user count
+                        }
+                    }
+                });
+            } else {
+                console.warn("Failed to fetch user count:", data.message);
+            }
+        } catch (error) {
+            console.error("Error fetching user count:", error);
+        }
+    });
+    
+    document.addEventListener("DOMContentLoaded", async function () {
+        try {
+            const response = await fetch("http://localhost/thriftique_db/includes/v1/Products/get_product_count.php");
+            const data = await response.json();
+    
+            if (!data.error) {
+                document.querySelectorAll(".card h3").forEach((h3) => {
+                    if (h3.innerText.includes("Products")) {
+                        let productCountElement = h3.nextElementSibling; // Select the <p> next to <h3>
+                        if (productCountElement) {
+                            productCountElement.textContent = data.product_count; // Update the product count
+                        }
+                    }
+                });
+            } else {
+                console.warn("Failed to fetch product count");
+            }
+        } catch (error) {
+            console.error("Error fetching product count:", error);
+        }
+    });
+    
+    
   </script>
 
 </body>

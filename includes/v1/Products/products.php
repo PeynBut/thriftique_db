@@ -111,16 +111,18 @@ $conn->close();
             <li>No new notifications</li>
         </ul>
     </div>
+<!--drop down menu-->
     <div class="user-menu">
-        <div class="user-info" onclick="toggleUserMenu()">
-            <span id="username">Admin</span> <!-- Placeholder for dynamic name -->
-            <i class="fas fa-user-circle"></i>
-        </div>
-        <div class="user-dropdown" id="userDropdown">
+    <div class="user-info" onclick="toggleUserMenu(event)">
+        <span id="username">Admin</span> <!-- Placeholder for dynamic name -->
+        <i class="fas fa-user-circle"></i>
+    </div>
+    <div class="user-dropdown" id="userDropdown">
             <a href="http://localhost/thriftique_db/includes/v1/admin/settings.html">⚙️ Settings</a>
-            <a href="logout.php" class="logout" onclick="logoutUser()">🚪 Logout</a>
+            <a href="http://localhost/thriftique_db/includes/v1/admin/logout.php" onclick="logoutUser()">🚪 Logout</a>
+            <a href="http://localhost/thriftique_db/includes/v1/admin/settings.html">🔒 Change Password</a>
         </div>
-    </div> 
+    </div>
 </div>
 
 <div class="sidebar" id="sidebar">
@@ -234,36 +236,35 @@ $conn->close();
             }
         }
         // Open the modal
-function openProductModal() {
-    document.getElementById('productModal').style.display = 'block';
-}
+    // Open and Close Product Modal
+    function openProductModal() {
+        document.getElementById("productModal").style.display = "block";
+    }
 
-// Close the modal
-function closeProductModal() {
-    document.getElementById('productModal').style.display = 'none';
-}
+    function closeProductModal() {
+        document.getElementById("productModal").style.display = "none";
+    }
 
-// Handle form submission
-document.getElementById('product-form').addEventListener('submit', function (e) {
-    e.preventDefault();
-    const formData = new FormData(this);
+    // Open and Close Edit Product Modal
+    function openEditProductModal(id, name, description, price) {
+        document.getElementById("editProductModal").style.display = "block";
+        document.getElementById("edit-product-id").value = id;
+        document.getElementById("edit-product-name").value = name;
+        document.getElementById("edit-product-description").value = description;
+        document.getElementById("edit-product-price").value = price;
+    }
 
-    fetch('products.php', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert(data.message);
-            closeProductModal();
-            addProductToTable(data.product); // Add the new product to the table
-        } else {
-            alert(data.message);
+    function closeEditProductModal() {
+        document.getElementById("editProductModal").style.display = "none";
+    }
+
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+        if (event.target.classList.contains("modal")) {
+            event.target.style.display = "none";
         }
-    })
-    .catch(error => console.error('Error:', error));
-});
+    }
+
 
 // Add new product to the table
 function addProductToTable(product) {
@@ -309,46 +310,65 @@ function fetchNotifications() {
         })
         .catch(error => console.error('Error fetching notifications:', error));
 }
-function toggleUserMenu() {
-        document.getElementById("userDropdown").classList.toggle("active");
-    }
-    
-    // Close dropdown when clicking outside
-    document.addEventListener("click", function (event) {
-        const dropdown = document.getElementById("userDropdown");
-        if (!event.target.closest(".user-menu")) {
-            dropdown.classList.remove("active");
-        }
-    });
-    document.addEventListener("DOMContentLoaded", async function () {
-        try {
-            const response = await fetch("http://localhost/thriftique_db/includes/v1/admin/get_user.php");
-            const data = await response.json();
-    
-            if (data.first_name) {
-                document.getElementById("username").textContent = `${data.first_name} ${data.last_name}`;
-            } else {
-                console.warn("User not found or not logged in");
-            }
-        } catch (error) {
-            console.error("Error fetching user data:", error);
-        }
-    });
-    function logoutUser() {
-        fetch("http://localhost/thriftique_db/includes/v1/admin/login.php", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" }
-        })
-            .then(response => {
-                if (response.ok) {
-                    window.location.href = "http://localhost/thriftique_db/includes/v1/admin/login.php";
-                } else {
-                    console.error("Error logging out user");
-                }
-            })
-            .catch(error => console.error("Error logging out user:", error));
-    }
 
+function toggleUserMenu(event) {
+    event.stopPropagation(); // Prevents event from bubbling to the document
+    const dropdown = document.getElementById("userDropdown");
+    dropdown.classList.toggle("active");
+}
+
+// Close dropdown when clicking outside
+document.addEventListener("click", function (event) {
+    const dropdown = document.getElementById("userDropdown");
+    if (dropdown.classList.contains("active") && !event.target.closest(".user-menu")) {
+        dropdown.classList.remove("active");
+    }
+});
+
+document.addEventListener("DOMContentLoaded", async function () {
+    try {
+        const response = await fetch("http://localhost/thriftique_db/includes/v1/admin/get_user.php");
+        const data = await response.json();
+
+        if (data.first_name) {
+            document.getElementById("username").textContent = `${data.first_name} ${data.last_name}`;
+        } else {
+            console.warn("User not found or not logged in");
+        }
+    } catch (error) {
+        console.error("Error fetching user data:", error);
+    }
+});
+    //notification bell
+function fetchNotifications() {
+    fetch('http://localhost/thriftique_db/includes/v1/notification/get_notifications.php')
+        .then(response => response.text()) // Get raw response first
+        .then(text => {
+            try {
+                let data = JSON.parse(text); // Try parsing JSON
+                let notificationList = document.getElementById('notification-list');
+                let notificationCount = document.getElementById('notification-count');
+
+                notificationList.innerHTML = "";
+                if (data.length > 0) {
+                    notificationCount.style.display = "block";
+                    notificationCount.innerText = data.length;
+
+                    data.forEach(notification => {
+                        let li = document.createElement('li');
+                        li.innerText = notification.message;
+                        notificationList.appendChild(li);
+                    });
+                } else {
+                    notificationList.innerHTML = "<li>No new notifications</li>";
+                    notificationCount.style.display = "none";
+                }
+            } catch (error) {
+                console.error("Error parsing JSON:", text); // Show raw response
+            }
+        })
+        .catch(error => console.error('Error fetching notifications:', error));
+}
 // Auto-fetch notifications every 5 seconds
 setInterval(fetchNotifications, 5000);
 fetchNotifications();

@@ -415,5 +415,21 @@ class DBoperations {
             return ["status" => 0, "message" => "Database error: " . $stmt->error];
         }
     }
+    public function getUserCount() {
+        $stmt = $this->con->prepare("SELECT COUNT(*) AS count FROM users"); 
+        $stmt->execute();
+        $stmt->bind_result($count);
+        $stmt->fetch();
+        $stmt->close();
+        return $count;
+    }
+    public function executeQuery($sql, $params = []) {
+        $stmt = $this->con->prepare($sql);
+        if ($params) {
+            $stmt->bind_param(str_repeat("s", count($params)), ...$params);
+        }
+        $stmt->execute();
+        return $stmt->get_result();
+    }
 }    
 ?>

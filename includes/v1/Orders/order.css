@@ -257,7 +257,8 @@ button.delete {
         right: 5px;
     }
 }
-/* User Info in Top Bar */
+/* Positioning the user menu */
+/* User Menu */
 .user-menu {
     position: relative;
     display: flex;
@@ -270,13 +271,13 @@ button.delete {
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: 16px;
+    font-size: 18px;
     color: #333;
     font-weight: 500;
 }
 
 .user-info i {
-    font-size: 22px;
+    font-size: 30px;
     color: #333;
 }
 

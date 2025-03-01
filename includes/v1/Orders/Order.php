@@ -63,6 +63,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     $order = $db->trackOrder($data['phone'], $data['tracking_number']);
                     if ($order) {
                         $response['error'] = false;
+                        // Format price with peso sign
+                        $order['total_price'] = "₱" . number_format($order['total_price'], 2);
                         $response['order'] = $order;
                     } else {
                         $response['error'] = true;
@@ -89,6 +91,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $order = $db->getOrderById($_GET['id']);
         if ($order) {
             $response['error'] = false;
+            // Format price with peso sign
+            $order['total_price'] = "₱" . number_format($order['total_price'], 2);
             $response['order'] = $order;
         } else {
             $response['error'] = true;
@@ -99,6 +103,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $response['error'] = false;
         $response['orders'] = array();
         while ($order = $orders->fetch_assoc()) {
+            // Format price with peso sign
+            $order['total_price'] = "₱" . number_format($order['total_price'], 2);
             array_push($response['orders'], $order);
         }
     } else {
@@ -106,6 +112,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $response['error'] = false;
         $response['orders'] = array();
         while ($order = $orders->fetch_assoc()) {
+            // Format price with peso sign
+            $order['total_price'] = "₱" . number_format($order['total_price'], 2);
             array_push($response['orders'], $order);
         }
     }

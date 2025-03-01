@@ -391,6 +391,7 @@ if ($isAjax) {
         <div class="user-dropdown" id="userDropdown">
             <a href="http://localhost/thriftique_db/includes/v1/admin/settings.html">⚙️ Settings</a>
             <a href="http://localhost/thriftique_db/includes/v1/admin/logout.php" onclick="logoutUser()">🚪 Logout</a>
+            <a href="http://localhost/thriftique_db/includes/v1/admin/settings.html">🔒 Change Password</a>
         </div>
     </div> 
   </div>
@@ -403,8 +404,6 @@ if ($isAjax) {
     <a href="http://localhost/thriftique_db/includes/v1/Orders/Order.html">📦 Orders</a>
     <a href="http://localhost/thriftique_db/includes/v1/Categories/Categories.php">📂 Categories</a>
     <a href="#" onclick="openChat()">💬 Messages</a>
-    <a href="http://localhost/thriftique_db/includes/v1/admin/settings.html">⚙️ Settings</a>
-    <a href="http://localhost/thriftique_db/includes/v1/admin/logout.php" class="logout" onclick="logoutUser()">🚪 Logout</a>
 </div>     
     <div class="content" id="content">
         <h2>Product Categories</h2>
@@ -488,8 +487,8 @@ function deleteCategory(id) {
             fetchCategories();
         });
     }
-}
-
+}   
+    //sidebar
 function toggleMenu() {
     let sidebar = document.getElementById('sidebar');
     let content = document.getElementById('content');
@@ -499,7 +498,7 @@ function toggleMenu() {
 function toggleNotifications() {
             document.getElementById('notifications').classList.toggle('show');
         }
-
+        //Notification
         function fetchNotifications() {
             fetch('get_notifications.php')
                 .then(response => response.json())
@@ -527,7 +526,8 @@ function toggleNotifications() {
 
             setInterval(fetchNotifications, 5000); // Fetch every 5 seconds
             fetchNotifications(); // Load initially
-            function toggleUserMenu() {
+    // User Dropdown
+    function toggleUserMenu() {
         document.getElementById("userDropdown").classList.toggle("active");
     }
     

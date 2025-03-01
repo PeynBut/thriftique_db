@@ -1,6 +1,7 @@
 <?php
 require_once '../DBoperations.php';
 $response = array();
+$_SESSION['user_id'] = $user['id']; // Store Android user ID in session
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Get the raw POST data

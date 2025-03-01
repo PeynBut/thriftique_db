@@ -318,3 +318,19 @@ canvas {
 .user-dropdown.active {
     display: flex;
 }
+.message-container {
+    display: inline-block;
+    margin-right: 20px;
+    cursor: pointer;
+}
+
+.message-link {
+    text-decoration: none;
+    font-size: 16px;
+    color: #333;
+    font-weight: bold;
+}
+
+.message-link:hover {
+    color: #007bff;
+}
