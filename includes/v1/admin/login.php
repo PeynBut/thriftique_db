@@ -1,6 +1,8 @@
 <?php
 session_start();
 
+
+
 // Enable error reporting for debugging
 ini_set('log_errors', 1);
 ini_set('error_log', '/tmp/php_errors.log'); // Ensure this path exists or change to another one
@@ -41,8 +43,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit();
     }
 
-    $_SESSION['admin_id'] = $user['id'];
-    $_SESSION['admin_name'] = $user['first_name'];
+  // Store admin details in session
+  $_SESSION['admin_id'] = $user['id'];
+  $_SESSION['admin_name'] = $user['first_name'];
+  $_SESSION['last_name'] = $user['last_name']; // Add last name to session
     echo json_encode(["error" => false, "message" => "Login successful!", "admin_name" => $user['first_name']]);
     exit();
 }
@@ -102,7 +106,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     const data = await response.json();
                     alert(data.message);
                     if (!data.error) {
-                        window.location.href = 'dashboard.html';
+                        window.location.href = 'http://localhost/thriftique_db/includes/v1//admin/dashboard.html';
                     }
                 } catch (error) {
                     alert('Login failed. Please check your server.');

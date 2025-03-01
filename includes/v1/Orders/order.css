@@ -257,3 +257,55 @@ button.delete {
         right: 5px;
     }
 }
+/* User Info in Top Bar */
+.user-menu {
+    position: relative;
+    display: flex;
+    align-items: center;
+    margin-right: 20px;
+    cursor: pointer;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 16px;
+    color: #333;
+    font-weight: 500;
+}
+
+.user-info i {
+    font-size: 22px;
+    color: #333;
+}
+
+/* User Dropdown */
+.user-dropdown {
+    position: absolute;
+    right: 0;
+    top: 40px;
+    background: #fff;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 6px;
+    width: 150px;
+    display: none;
+    flex-direction: column;
+    z-index: 10;
+}
+
+.user-dropdown a {
+    padding: 10px;
+    text-decoration: none;
+    color: #333;
+    display: block;
+    font-size: 14px;
+}
+
+.user-dropdown a:hover {
+    background: #f4f4f4;
+}
+
+.user-dropdown.active {
+    display: flex;
+}

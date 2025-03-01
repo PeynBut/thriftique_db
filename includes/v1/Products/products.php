@@ -111,6 +111,16 @@ $conn->close();
             <li>No new notifications</li>
         </ul>
     </div>
+    <div class="user-menu">
+        <div class="user-info" onclick="toggleUserMenu()">
+            <span id="username">Admin</span> <!-- Placeholder for dynamic name -->
+            <i class="fas fa-user-circle"></i>
+        </div>
+        <div class="user-dropdown" id="userDropdown">
+            <a href="http://localhost/thriftique_db/includes/v1/admin/settings.html">⚙️ Settings</a>
+            <a href="logout.php" class="logout" onclick="logoutUser()">🚪 Logout</a>
+        </div>
+    </div> 
 </div>
 
 <div class="sidebar" id="sidebar">
@@ -119,8 +129,6 @@ $conn->close();
     <a href="http://localhost/thriftique_db/includes/v1/Orders/Order.html">📦 Orders</a>
     <a href="http://localhost/thriftique_db/includes/v1/Categories/Categories.php">📂 Categories</a>
     <a href="#" onclick="openChat()">💬 Messages</a>
-    <a href="http://localhost/thriftique_db/includes/v1/admin/settings.html">⚙️ Settings</a>
-    <a href="http://localhost/thriftique_db/includes/v1/admin/logout.php" class="logout" onclick="logoutUser()">🚪 Logout</a>
 </div>>
     <div class="content" id="content">
         <h2>Products</h2>
@@ -301,10 +309,50 @@ function fetchNotifications() {
         })
         .catch(error => console.error('Error fetching notifications:', error));
 }
+function toggleUserMenu() {
+        document.getElementById("userDropdown").classList.toggle("active");
+    }
+    
+    // Close dropdown when clicking outside
+    document.addEventListener("click", function (event) {
+        const dropdown = document.getElementById("userDropdown");
+        if (!event.target.closest(".user-menu")) {
+            dropdown.classList.remove("active");
+        }
+    });
+    document.addEventListener("DOMContentLoaded", async function () {
+        try {
+            const response = await fetch("http://localhost/thriftique_db/includes/v1/admin/get_user.php");
+            const data = await response.json();
+    
+            if (data.first_name) {
+                document.getElementById("username").textContent = `${data.first_name} ${data.last_name}`;
+            } else {
+                console.warn("User not found or not logged in");
+            }
+        } catch (error) {
+            console.error("Error fetching user data:", error);
+        }
+    });
+    function logoutUser() {
+        fetch("http://localhost/thriftique_db/includes/v1/admin/login.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" }
+        })
+            .then(response => {
+                if (response.ok) {
+                    window.location.href = "http://localhost/thriftique_db/includes/v1/admin/login.php";
+                } else {
+                    console.error("Error logging out user");
+                }
+            })
+            .catch(error => console.error("Error logging out user:", error));
+    }
 
 // Auto-fetch notifications every 5 seconds
 setInterval(fetchNotifications, 5000);
 fetchNotifications();
+
 
     </script>
 </body>

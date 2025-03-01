@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Order Management</title>
     <link rel="stylesheet" href="order.css">
+    <link rel="stylesheet" href="/includes/v1/admin/dashboard.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/js/all.min.js"></script>
 </head>
 <body>
@@ -26,17 +27,26 @@
               </ul>
           </div>
       </div>
+      <div class="user-menu">
+        <div class="user-info" onclick="toggleUserMenu()">
+            <span id="username">Admin</span> <!-- Placeholder for dynamic name -->
+            <i class="fas fa-user-circle"></i>
+        </div>
+        <div class="user-dropdown" id="userDropdown">
+            <a href="http://localhost/thriftique_db/includes/v1/admin/settings.html">⚙️ Settings</a>
+            <a href="logout.php" class="logout" onclick="logoutUser()">🚪 Logout</a>
+        </div>
+    </div> 
   </div>
 
-    <div class="sidebar" id="sidebar">
-    <a href="http://localhost/thriftique_db/includes/v1//admin/dashboard.html">🏠 Dashboard</a>
-    <a href="http://localhost/thriftique_db/includes/v1/Products/products.php">📦 Products</a>
-    <a href="http://localhost/thriftique_db/includes/v1/Orders/Order.html">📦 Orders</a>
-    <a href="http://localhost/thriftique_db/includes/v1/Categories/Categories.php">📂 Categories</a>
-    <a href="#" onclick="openChat()">💬 Messages</a>
-    <a href="http://localhost/thriftique_db/includes/v1/admin/settings.html">⚙️ Settings</a>
-    <a href="http://localhost/thriftique_db/includes/v1/admin/logout.php" class="logout" onclick="logoutUser()">🚪 Logout</a>
-</div>
+  <div class="sidebar" id="sidebar">
+      <a href="http://localhost/thriftique_db/includes/v1/admin/dashboard.html">🏠 Dashboard</a>
+      <a href="http://localhost/thriftique_db/includes/v1/Products/products.php">📦 Products</a>
+      <a href="http://localhost/thriftique_db/includes/v1/Orders/order.html">📦 Orders</a>
+      <a href="http://localhost/thriftique_db/includes/v1/Categories/Categories.php">📂 Categories</a>
+      <a href="http://localhost/thriftique_db/includes/v1/analytic/analytics.html">📊 Analytics</a>
+      <a href="http://localhost/thriftique_db/includes/v1/admin/settings.html">⚙️ Settings</a>
+  </div>
 
   <div class="content" id="content">
       <h2>Orders</h2>
@@ -154,7 +164,46 @@
               notificationDropdown.classList.remove('show');
           }
       });
-
+      document.addEventListener("DOMContentLoaded", function () {
+        const userInfo = document.querySelector(".user-info");
+        const userDropdown = document.getElementById("userDropdown");
+    
+        userInfo.addEventListener("click", function (event) {
+            event.stopPropagation();
+            userDropdown.classList.toggle("active");
+    
+            // Ensure the dropdown doesn't overflow the viewport
+            const rect = userDropdown.getBoundingClientRect();
+            if (rect.right > window.innerWidth) {
+                userDropdown.style.left = "auto";
+                userDropdown.style.right = "0";
+            }
+        });
+    
+        document.addEventListener("click", function (event) {
+            if (!userDropdown.contains(event.target) && !userInfo.contains(event.target)) {
+                userDropdown.classList.remove("active");
+            }
+        });
+    
+        // Fetch User Data and Adjust Layout
+        fetch("http://localhost/thriftique_db/includes/v1/admin/get_user.php")
+            .then(response => response.json())
+            .then(data => {
+                if (data.first_name) {
+                    let fullName = `${data.first_name} ${data.last_name}`;
+                    document.getElementById("username").textContent = fullName;
+    
+                    // Adjust width dynamically based on text length
+                    if (fullName.length > 15) {
+                        userInfo.style.width = "auto";
+                        userDropdown.style.width = "220px";
+                    }
+                }
+            })
+            .catch(error => console.error("Error fetching user data:", error));
+    });
+    
   </script>
 </body>
 </html>
