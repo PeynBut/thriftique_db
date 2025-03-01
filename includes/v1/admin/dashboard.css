@@ -200,63 +200,69 @@ body {
     transition: background 0.3s ease;
 }
 
-.sidebar a.logout:hover {
-    background-color: #ffdddd;
+.analytics-container {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    flex-wrap: wrap;
 }
 
-/* Logout Icon Fix */
-.sidebar a.logout i {
-    margin-right: 5px;
+/* Analytics Overview */
+.analytics-overview {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+    flex: 1;
 }
 
-/* Mobile Optimization */
-@media (max-width: 768px) {
-    .notification-dropdown {
-        width: 90%;
-        right: 5px;
-    }
+.analytics-overview .card {
+    padding: 12px;
+    font-size: 14px;
 }
 
-.sales-images {
-    margin-top: 20px;
-    margin-bottom: 100px;
-    justify-content: center;
-    text-align: center;
-    background: #fff;
+.analytics-overview .card h3 {
+    font-size: 16px;
+}
+
+.analytics-overview .card p {
+    font-size: 20px;
+}
+
+/* Charts Wrapper (Side by Side) */
+.chart-wrapper {
+    margin-top: 15px;
+    display: flex;
+    gap: 20px;
+    flex: 1;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
+
+.chart-container {
+    flex: 1;
+    min-width: 300px;
+    max-width: 48%; /* Ensure charts take up half width */
     padding: 15px;
+    background: #fff;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     border-radius: 6px;
 }
 
-.image-gallery {
-    display: flex;
-    gap: 20px; /* Reduce gap between images */
-    margin-top: 20px;
-    justify-content: center;
-    flex-wrap: wrap;
+.chart-container h3 {
+    font-size: 16px;
+    margin-bottom: 10px;
 }
 
-.image-container {
-    position: relative;
-    width: 120px; /* Decrease width */
-    height: 180px; /* Decrease height */
+canvas {
+    max-height: 250px !important; /* Adjust height for consistency */
 }
 
-.image-container label {
-    position: absolute;
-    top: 5px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(0, 0, 0, 0.6);
-    color: white;
-    padding: 3px 8px;
-    border-radius: 4px;
-    font-size: 12px; /* Reduce font size */
-}
-
-.image-gallery img {
-    object-fit: cover;
-    border-radius: 6px;
-    width: 100%;
-    height: 100%;
+/* Responsive Fix */
+@media (max-width: 768px) {
+    .chart-wrapper {
+        flex-direction: column;
+    }
+    .chart-container {
+        max-width: 100%;
+    }
 }

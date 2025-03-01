@@ -333,16 +333,15 @@ if ($isAjax) {
 </div>
 
 
-    <div class="sidebar" id="sidebar">
-        <a href="http://localhost/thriftique_db/includes/v1/admin/dashboard.html">🏠 Dashboard</a>
-        <a href="http://localhost/thriftique_db/includes/v1/Products/products.php">📦 Products</a>
-        <a href="http://localhost/thriftique_db/includes/v1/Orders/Order.html">📦 Orders</a>
-        <a href="http://localhost/thriftique_db/includes/v1/Categories/Categories.php">📂 Categories</a>
-        <a href="http://localhost/thriftique_db/includes/v1/analytic/analytics.html">📊 Analytics</a>
-        <a href="http://localhost/thriftique_db/includes/v1/admin/settings.html">⚙️ Settings</a>
-        <a href="http://localhost/thriftique_db/includes/v1/admin/logout.php" class="logout" onclick="logoutUser()">🚪 Logout</a>
-    </div>
-
+<div class="sidebar" id="sidebar">
+    <a href="http://localhost/thriftique_db/includes/v1//admin/dashboard.html">🏠 Dashboard</a>
+    <a href="http://localhost/thriftique_db/includes/v1/Products/products.php">📦 Products</a>
+    <a href="http://localhost/thriftique_db/includes/v1/Orders/Order.html">📦 Orders</a>
+    <a href="http://localhost/thriftique_db/includes/v1/Categories/Categories.php">📂 Categories</a>
+    <a href="#" onclick="openChat()">💬 Messages</a>
+    <a href="http://localhost/thriftique_db/includes/v1/admin/settings.html">⚙️ Settings</a>
+    <a href="http://localhost/thriftique_db/includes/v1/admin/logout.php" class="logout" onclick="logoutUser()">🚪 Logout</a>
+</div>     
     <div class="content" id="content">
         <h2>Product Categories</h2>
         <button class="add-btn" onclick="addCategory()">➕ Add Category</button>

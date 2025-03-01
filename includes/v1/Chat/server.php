@@ -100,15 +100,14 @@ if (php_sapi_name() === 'cli') {
 
     <!-- Sidebar -->
     <div class="sidebar" id="sidebar">
-        <a href="dashboard.php">🏠 Dashboard</a>
-        <a href="products.php">📦 Products</a>
-        <a href="orders.php">📦 Orders</a>
-        <a href="categories.php">📂 Categories</a>
-        <a href="analytics.php">📊 Analytics</a>
-        <a href="settings.php">⚙️ Settings</a>
-        <a href="#" onclick="openChat()">💬 Messages</a>
-    </div>
-
+    <a href="http://localhost/thriftique_db/includes/v1//admin/dashboard.html">🏠 Dashboard</a>
+    <a href="http://localhost/thriftique_db/includes/v1/Products/products.php">📦 Products</a>
+    <a href="http://localhost/thriftique_db/includes/v1/Orders/Order.html">📦 Orders</a>
+    <a href="http://localhost/thriftique_db/includes/v1/Categories/Categories.php">📂 Categories</a>
+    <a href="#" onclick="openChat()">💬 Messages</a>
+    <a href="http://localhost/thriftique_db/includes/v1/admin/settings.html">⚙️ Settings</a>
+    <a href="http://localhost/thriftique_db/includes/v1/admin/logout.php" class="logout" onclick="logoutUser()">🚪 Logout</a>
+</div>
     <!-- Content -->
     <div class="content" id="content">
         <h2>Welcome to your Dashboard</h2>

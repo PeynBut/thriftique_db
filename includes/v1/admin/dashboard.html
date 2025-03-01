@@ -3,154 +3,129 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
+    <title>Dashboard & Analytics</title>
     <link rel="stylesheet" href="dashboard.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 </head>
 <body>
+  
   <!-- Top Navigation Bar -->
-<div class="top-bar">
-    <div class="menu-toggle" onclick="toggleMenu()">☰</div>
-    <h2 style="margin-left: 20px;">Dashboard</h2>
+  <div class="top-bar">
+      <div class="menu-toggle" onclick="toggleMenu()">☰</div>
+      <h2 style="margin-left: 20px;">Dashboard</h2>
+      <div class="notification-container" onclick="toggleNotifications()">
+          <i class="fas fa-bell notification-bell" aria-label="Notifications"></i>
+          <span class="badge" id="notification-count">0</span>
+          <div class="notification-dropdown" id="notifications">
+              <h4>Notifications</h4>
+              <ul id="notification-list">
+                  <li>No new notifications</li>
+              </ul>
+          </div>
+      </div>
+  </div>
 
-    <!-- Notification Icon -->
-    <div class="notification-container" onclick="toggleNotifications()">
-        <i class="fas fa-bell notification-bell" aria-label="Notifications"></i>
-        <span class="badge" id="notification-count">0</span>
-
-        <!-- Notifications Dropdown -->
-        <div class="notification-dropdown" id="notifications">
-            <h4>Notifications</h4>
-            <ul id="notification-list">
-                <li>No new notifications</li>
-            </ul>
-        </div>
-    </div>
+  <!-- Sidebar Navigation -->
+  <div class="sidebar" id="sidebar">
+    <a href="http://localhost/thriftique_db/includes/v1//admin/dashboard.html">🏠 Dashboard</a>
+    <a href="http://localhost/thriftique_db/includes/v1/Products/products.php">📦 Products</a>
+    <a href="http://localhost/thriftique_db/includes/v1/Orders/Order.html">📦 Orders</a>
+    <a href="http://localhost/thriftique_db/includes/v1/Categories/Categories.php">📂 Categories</a>
+    <a href="#" onclick="openChat()">💬 Messages</a>
+    <a href="http://localhost/thriftique_db/includes/v1/admin/settings.html">⚙️ Settings</a>
+    <a href="http://localhost/thriftique_db/includes/v1/admin/logout.php" class="logout" onclick="logoutUser()">🚪 Logout</a>
 </div>
 
-    <!-- Sidebar Navigation -->
-    <div class="sidebar" id="sidebar">
-        <a href="http://localhost/thriftique_db/includes/v1/admin/dashboard.html">🏠 Dashboard</a>
-        <a href="http://localhost/thriftique_db/includes/v1/Products/products.php">📦 Products</a>
-        <a href="http://localhost/thriftique_db/includes/v1/Orders/Order.html">📦 Orders</a>
-        <a href="http://localhost/thriftique_db/includes/v1/Categories/Categories.php">📂 Categories</a>
-        <a href="http://localhost/thriftique_db/includes/v1/analytic/analytics.html">📊 Analytics</a>
-        <a href="http://localhost/thriftique_db/includes/v1/Chat/server.html">📊 Chat</a>
-        <a href="http://localhost/thriftique_db/includes/v1/admin/settings.html">⚙️ Settings</a>
-        <a href="http://localhost/thriftique_db/includes/v1/admin/logout.php" class="logout" onclick="logoutUser()">🚪 Logout</a>
-    </div>
+  <!-- Dashboard Content -->
+  <div class="content" id="content">
+      <h2>Welcome to your Dashboard</h2>
+      <div class="dashboard-overview">
+          <div class="card"><h3>Total Products</h3><p>120</p></div>
+          <div class="card"><h3>Total Categories</h3><p>15</p></div>
+          <div class="card"><h3>Monthly Sales</h3><p>$5,230</p></div>
+          <div class="card"><h3>Active Users</h3><p>320</p></div>
+      </div>
 
-    <!-- Dashboard Content -->
-    <div class="content" id="content">
-        <h2>Welcome to your Dashboard</h2>
-        <p>Select an option from the sidebar to get started.</p>
-        
-        <!-- Dashboard overview cards -->
-        <div class="dashboard-overview">
-            <div class="card">
-                <h3>Total Products</h3>
-                <p>120</p>
-            </div>
-            <div class="card">
-                <h3>Total Categories</h3>
-                <p>15</p>
-            </div>
-            <div class="card">
-                <h3>Monthly Sales</h3>
-                <p>$5,230</p>
-            </div>
-            <div class="card">
-                <h3>Active Users</h3>
-                <p>320</p>
-            </div>
-        </div>
-    </div>
-    <div class="sales-images">
-        <h3>Recent Sales</h3>
-        <div class="image-gallery">
-            <div class="image-container">
-                <label>Image 1</label>
-                <img src="login/bg image thriftiqye.jpg" alt="Sale Image 1" />
-            </div>
-            <div class="image-container">
-                <label>Image 2</label>
-                <img src="login/bg image thriftiqye.jpg" alt="Sale Image 2" />
-            </div>
-            <div class="image-container">
-                <label>Image 3</label>
-                <img src="login/bg image thriftiqye.jpg" alt="Sale Image 3" />
-            </div>
-            <div class="image-container">
-                <label>Image 4</label>
-                <img src="login/bg image thriftiqye.jpg" alt="Sale Image 4" />
-            </div>
-            <div class="image-container">
-                <label>Image 5</label>
-                <img src="login/bg image thriftiqye.jpg" alt="Sale Image 5" />
-            </div>
-        </div>
-    </div>
+      <!-- Analytics Section -->
+      <h2>Analytics Overview</h2>
+      <div class="analytics-container">
+          <!-- Analytics Cards -->
+          <div class="analytics-overview">
+              <div class="card"><h3>Total Sales</h3><p>$10,450</p></div>
+              <div class="card"><h3>Orders This Month</h3><p>1,250</p></div>
+              <div class="card"><h3>New Customers</h3><p>320</p></div>
+              <div class="card"><h3>Returning Customers</h3><p>180</p></div>
+          </div>
+      </div>
+      
+      <!-- Side-by-Side Charts -->
+      <div class="chart-wrapper">
+          <div class="chart-container">
+              <h3>Sales Trends</h3>
+              <canvas id="salesChart"></canvas>
+          </div>
+          <div class="chart-container">
+              <h3>Order Growth</h3>
+              <canvas id="ordersChart"></canvas>
+          </div>
+      </div>
+      
 
-    <script>
-        // Toggle Sidebar
-        function toggleMenu() {
-            document.getElementById('sidebar').classList.toggle('active');
-            document.getElementById('content').classList.toggle('shift');
+  <script>
+      function toggleMenu() {
+          document.getElementById('sidebar').classList.toggle('active');
+          document.getElementById('content').classList.toggle('shift');
+      }
+
+      document.addEventListener("DOMContentLoaded", async function () {
+        try {
+            const response = await fetch("http://localhost/thriftique_db/includes/v1/analytic/analytics.php");  
+            const data = await response.json();
+
+            if (!data || data.length === 0) {
+                console.warn("No analytics data available");
+                return;
+            }
+
+            const labels = data.map(row => row.month);
+            const salesData = data.map(row => row.sales);
+            const ordersData = data.map(row => row.orders);
+
+            updateCards(data);
+            createChart("salesChart", "Sales ($)", labels, salesData, "#007bff");
+            createChart("ordersChart", "Orders", labels, ordersData, "#28a745");
+        } catch (error) {
+            console.error("Error fetching data:", error);
         }
+    });
 
-        // Toggle Notifications Dropdown
-        function toggleNotifications() {
-            document.getElementById('notifications').classList.toggle('show');
+    function createChart(elementId, label, labels, data, color) {
+        new Chart(document.getElementById(elementId).getContext("2d"), {
+            type: "bar",
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: label,
+                    data: data,
+                    backgroundColor: color,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: { y: { beginAtZero: true } }
+            }
+        });
+    }
+
+    function updateCards(data) {
+        if (data.length > 0) {
+            document.querySelectorAll(".analytics-overview .card p")[0].textContent = `$${data.reduce((acc, row) => acc + parseFloat(row.sales), 0)}`;
+            document.querySelectorAll(".analytics-overview .card p")[1].textContent = data.reduce((acc, row) => acc + parseInt(row.orders), 0);
         }
+    }
+  </script>
 
-        // Fetch Notifications
-        function fetchNotifications() {
-            fetch('get_notifications.php')
-                .then(response => response.json())
-                .then(data => {
-                    let notificationList = document.getElementById('notification-list');
-                    let notificationCount = document.getElementById('notification-count');
-
-                    notificationList.innerHTML = "";
-                    if (data.length > 0) {
-                        notificationCount.style.display = "block";
-                        notificationCount.innerText = data.length;
-
-                        data.forEach(notification => {
-                            let li = document.createElement('li');
-                            li.innerText = notification.message;
-                            notificationList.appendChild(li);
-                        });
-                    } else {
-                        notificationList.innerHTML = "<li>No new notifications</li>";
-                        notificationCount.style.display = "none";
-                    }
-                })
-                .catch(error => console.error('Error fetching notifications:', error));
-        }
-
-        // Periodically Fetch Notifications
-        setInterval(fetchNotifications, 5000); // Fetch every 5 seconds
-        fetchNotifications(); // Load initially
-
-        // Logout User
-        function logoutUser() {
-            fetch('http://localhost/thriftique_db/includes/v1/admin/logout.php', {
-                method: 'GET',
-                credentials: 'include'
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Redirect to login page after logout
-                    window.location.href = "http://localhost/thriftique_db/includes/v1/admin/login.php";
-                } else {
-                    alert("Logout failed. Please try again.");
-                }
-            })
-            .catch(error => console.error('Error logging out:', error));
-        }
-        
-    </script>
 </body>
 </html>
