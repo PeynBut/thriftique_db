@@ -33,25 +33,65 @@ class ChatServer implements MessageComponentInterface {
     public function onOpen(ConnectionInterface $conn) {
         $this->clients->attach($conn);
         echo "New connection ({$conn->resourceId})\n";
-    }
-
-    public function onMessage(ConnectionInterface $from, $msg) {
-        $data = json_decode($msg, true);
-        if ($data) {
-            $this->saveMessage($data['sender'], $data['receiver'], $data['message']);
-
-            foreach ($this->clients as $client) {
-                $client->send($msg);
-            }
+    
+        // Example: Fetch chat history (adjust based on your logic)
+        $history = $this->getChatHistory('User1', 'User2'); 
+        foreach ($history as $msg) {
+            $conn->send(json_encode($msg));
         }
     }
+    
+    public function onMessage(ConnectionInterface $from, $msg) {
+        $data = json_decode($msg, true);
+    
+        // Validate that all required fields exist
+        if (!isset($data['sender']) || !isset($data['receiver']) || !isset($data['message'])) {
+            echo "Invalid message format received. Required keys missing.\n";
+            return;
+        }
+    
+        $sender = trim($data['sender']);
+        $receiver = trim($data['receiver']);
+        $message = trim($data['message']);
+    
+        // Ensure message is not empty before saving
+        if (empty($message)) {
+            echo "Empty message received. Not saving to database.\n";
+            return;
+        }
+    
+        // Save message to database
+        $this->saveMessage($sender, $receiver, $message);
+    
+        // Send message to all clients
+        foreach ($this->clients as $client) {
+            $client->send(json_encode([
+                'sender' => $sender,
+                'receiver' => $receiver,
+                'message' => $message
+            ]));
+        }
+    }
+    
+    
 
     public function saveMessage($sender, $receiver, $message) {
-        $stmt = $this->pdo->prepare("INSERT INTO messages (sender_id, receiver_id, message) VALUES (?, ?, ?)");
-        $stmt->execute([$sender, $receiver, $message]);
-        echo "Message saved: $message\n";
+        if (empty($sender) || empty($receiver) || empty($message)) {
+            echo "Skipping message save: Missing sender, receiver, or message.\n";
+            return;
+        }
+    
+        try {
+            $stmt = $this->pdo->prepare("INSERT INTO messages (sender, receiver, message) VALUES (?, ?, ?)");
+            $stmt->execute([$sender, $receiver, $message]);
+            echo "Message saved: $message\n";
+        } catch (PDOException $e) {
+            echo "Database error: " . $e->getMessage() . "\n";
+        }
     }
-
+    
+    
+    
     public function onClose(ConnectionInterface $conn) {
         $this->clients->detach($conn);
         echo "Connection {$conn->resourceId} closed\n";
@@ -61,6 +101,14 @@ class ChatServer implements MessageComponentInterface {
         echo "Error: {$e->getMessage()}\n";
         $conn->close();
     }
+    public function getChatHistory($sender, $receiver) {
+        $stmt = $this->pdo->prepare("SELECT sender, message FROM messages 
+                                    WHERE (sender = ? AND receiver = ?) OR (sender = ? AND receiver = ?) 
+                                    ORDER BY timestamp ASC");
+        $stmt->execute([$sender, $receiver, $receiver, $sender]);
+        return $stmt->fetchAll();
+    }
+    
 }
 
 // Run WebSocket Server
@@ -105,8 +153,6 @@ if (php_sapi_name() === 'cli') {
     <a href="http://localhost/thriftique_db/includes/v1/Orders/Order.html">📦 Orders</a>
     <a href="http://localhost/thriftique_db/includes/v1/Categories/Categories.php">📂 Categories</a>
     <a href="#" onclick="openChat()">💬 Messages</a>
-    <a href="http://localhost/thriftique_db/includes/v1/admin/settings.html">⚙️ Settings</a>
-    <a href="http://localhost/thriftique_db/includes/v1/admin/logout.php" class="logout" onclick="logoutUser()">🚪 Logout</a>
 </div>
     <!-- Content -->
     <div class="content" id="content">
@@ -163,43 +209,70 @@ if (php_sapi_name() === 'cli') {
         }
 
         // WebSocket Connection
-        const ws = new WebSocket("ws://localhost:8080");
+        let ws;
 
-ws.onopen = function () {
-    console.log("Connected to WebSocket");
-};
+function connectWebSocket() {
+    ws = new WebSocket("ws://localhost:8080");
 
-ws.onmessage = function (event) {
-    console.log("WebSocket message received:", event.data);
+    ws.onopen = function () {
+        console.log("Connected to WebSocket");
+    };
 
-    const chatMessages = document.getElementById("chat-messages");
-    if (!chatMessages) {
-        console.error("Chat messages container not found!");
-        return;
-    }
+    ws.onmessage = function (event) {
+        console.log("WebSocket message received:", event.data);
 
-    const data = JSON.parse(event.data);
-    if (!data.message) {
-        console.error("Invalid message format received:", data);
-        return;
-    }
+        const chatMessages = document.getElementById("chat-messages");
+        if (!chatMessages) {
+            console.error("Chat messages container not found!");
+            return;
+        }
 
-    const message = document.createElement("div");
-    message.classList.add("message");
-    message.textContent = `${data.sender}: ${data.message}`;
+        const data = JSON.parse(event.data);
+        if (!data.message) {
+            console.error("Invalid message format received:", data);
+            return;
+        }
 
-    chatMessages.appendChild(message);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-};
+        const message = document.createElement("div");
+        message.classList.add("message");
+        message.textContent = `${data.sender}: ${data.message}`;
+
+        chatMessages.appendChild(message);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    };
+
+    ws.onclose = function () {
+        console.warn("WebSocket closed. Reconnecting in 3 seconds...");
+        setTimeout(connectWebSocket, 3000); // Reconnect after 3s
+    };
+
+    ws.onerror = function (error) {
+        console.error("WebSocket error:", error);
+        ws.close();
+    };
+}
+
+// Start WebSocket connection
+connectWebSocket();
 
 function sendMessage() {
     const input = document.getElementById("chatMessage");
     const message = input.value.trim();
-    if (message) {
+
+    if (!message) {
+        console.warn("Cannot send an empty message.");
+        return;
+    }
+
+    if (ws.readyState === WebSocket.OPEN) {
         ws.send(JSON.stringify({ sender: "Admin", receiver: "User", message: message }));
         input.value = "";
+    } else {
+        console.error("WebSocket is not open. Cannot send message.");
     }
 }
+
+
 
     </script>
 </body>

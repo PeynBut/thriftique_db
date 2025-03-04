@@ -73,6 +73,7 @@ if ($isAjax) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Thriftique Categories</title>
+    <link rel="stylesheet" href="../Chat/chat.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 
     <style>
@@ -410,6 +411,21 @@ if ($isAjax) {
         <button class="add-btn" onclick="addCategory()">➕ Add Category</button>
         <div id="category-list" class="categories-overview"></div>
     </div>
+
+    
+      <!-- Chat Section (Hidden Initially) -->
+      <div id="chat-section" class="chat-box">
+        <div class="chat-header">
+            <h3>Live Chat</h3>
+            <button onclick="closeChat()">✖</button>
+        </div>
+        <div id="chat-messages" class="chat-messages"></div>
+        <div class="chat-input">
+            <input type="text" id="chatMessage" placeholder="Type a message..." />
+            <button onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+      
  
     
     <script>
@@ -552,6 +568,77 @@ function toggleNotifications() {
             console.error("Error fetching user data:", error);
         }
     });    
+    function openChat() {
+        document.getElementById('chat-section').style.display = "block";
+    }
+
+    function closeChat() {
+        document.getElementById('chat-section').style.display = "none";
+    }
+
+    // WebSocket Connection
+    let ws;
+
+function connectWebSocket() {
+ws = new WebSocket("ws://localhost:8080");
+
+ws.onopen = function () {
+    console.log("Connected to WebSocket");
+};
+
+ws.onmessage = function (event) {
+    console.log("WebSocket message received:", event.data);
+
+    const chatMessages = document.getElementById("chat-messages");
+    if (!chatMessages) {
+        console.error("Chat messages container not found!");
+        return;
+    }
+
+    const data = JSON.parse(event.data);
+    if (!data.message) {
+        console.error("Invalid message format received:", data);
+        return;
+    }
+
+    const message = document.createElement("div");
+    message.classList.add("message");
+    message.textContent = `${data.sender}: ${data.message}`;
+
+    chatMessages.appendChild(message);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+};
+
+ws.onclose = function () {
+    console.warn("WebSocket closed. Reconnecting in 3 seconds...");
+    setTimeout(connectWebSocket, 3000); // Reconnect after 3s
+};
+
+ws.onerror = function (error) {
+    console.error("WebSocket error:", error);
+    ws.close();
+};
+}
+
+// Start WebSocket connection
+connectWebSocket();
+
+function sendMessage() {
+const input = document.getElementById("chatMessage");
+const message = input.value.trim();
+
+if (!message) {
+    console.warn("Cannot send an empty message.");
+    return;
+}
+
+if (ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify({ sender: "Admin", receiver: "User", message: message }));
+    input.value = "";
+} else {
+    console.error("WebSocket is not open. Cannot send message.");
+}
+}
     </script>
 </body>
 </html>
