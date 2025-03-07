@@ -35,8 +35,8 @@
     </div>
     <div class="user-dropdown" id="userDropdown">
         <a href="http://localhost/thriftique_db/includes/v1/admin/settings.html">⚙️ Settings</a>
-        <a href="http://localhost/thriftique_db/includes/v1/admin/logout.php" onclick="logoutUser()">🚪 Logout</a>
         <a href="http://localhost/thriftique_db/includes/v1/admin/settings.html">🔒 Change Password</a>
+        <a href="http://localhost/thriftique_db/includes/v1/admin/logout.php" onclick="logoutUser()">🚪 Logout</a>
     </div>
     </div>
 </div>
@@ -56,7 +56,7 @@
           <thead>
               <tr>
                   <th>User ID</th>
-                  <th>Product ID</th>
+                  <th>Produuct ID</th>
                   <th>Quantity</th>
                   <th>Total Price</th>
                   <th>Status</th>
@@ -102,7 +102,7 @@
             data.orders.forEach(order => {
                 let row = `<tr>
                     <td>${order.user_id}</td>
-                    <td>${order.product_id}</td>
+                   <td>${order.product_id}</td>
                     <td>${order.quantity}</td>
                     <td>₱${order.total_price}</td>
                     <td>${order.status}</td>

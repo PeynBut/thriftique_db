@@ -113,7 +113,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $response['orders'] = array();
         while ($order = $orders->fetch_assoc()) {
             // Format price with peso sign
-            $order['total_price'] = "₱" . number_format($order['total_price'], 2);
+            $order['total_price'] = "" . number_format($order['total_price'], 2);
             array_push($response['orders'], $order);
         }
     }

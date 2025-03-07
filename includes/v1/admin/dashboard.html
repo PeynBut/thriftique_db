@@ -36,8 +36,8 @@
         </div>
         <div class="user-dropdown" id="userDropdown">
             <a href="http://localhost/thriftique_db/includes/v1/admin/settings.html">⚙️ Settings</a>
-            <a href="http://localhost/thriftique_db/includes/v1/admin/logout.php" onclick="logoutUser()">🚪 Logout</a>
             <a href="http://localhost/thriftique_db/includes/v1/admin/settings.html">🔒 Change Password</a>
+             <a href="http://localhost/thriftique_db/includes/v1/admin/logout.php" onclick="logoutUser()">🚪 Logout</a>
         </div>
     </div> 
   </div>
@@ -175,11 +175,15 @@
             console.error("Error fetching user data:", error);
         }
     });
-    function logoutUser() {
-        fetch("http://localhost/thriftique_db/includes/v1/admin/login.php", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" }
-        })
+    function logoutUser(event) {
+        event.preventDefault(); // Prevent default link behavior
+    
+        const confirmLogout = confirm("Are you sure you want to log out?");
+        if (confirmLogout) {
+            fetch("http://localhost/thriftique_db/includes/v1/admin/logout.php", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" }
+            })
             .then(response => {
                 if (response.ok) {
                     window.location.href = "http://localhost/thriftique_db/includes/v1/admin/login.php";
@@ -188,7 +192,14 @@
                 }
             })
             .catch(error => console.error("Error logging out user:", error));
+        }
     }
+    
+    // Attach the function to the logout link
+    document.querySelector(".user-dropdown a[href*='logout.php']").addEventListener("click", logoutUser);
+    function toggleNotifications() {
+        document.getElementById("notifications").classList.toggle("active");
+    }    
     document.addEventListener("DOMContentLoaded", async function () {
         try {
             const response = await fetch("http://localhost/thriftique_db/includes/v1/admin/get_android_user.php");

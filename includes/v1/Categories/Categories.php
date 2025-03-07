@@ -391,8 +391,8 @@ if ($isAjax) {
         </div>
         <div class="user-dropdown" id="userDropdown">
             <a href="http://localhost/thriftique_db/includes/v1/admin/settings.html">⚙️ Settings</a>
-            <a href="http://localhost/thriftique_db/includes/v1/admin/logout.php" onclick="logoutUser()">🚪 Logout</a>
             <a href="http://localhost/thriftique_db/includes/v1/admin/settings.html">🔒 Change Password</a>
+            <a href="http://localhost/thriftique_db/includes/v1/admin/logout.php" onclick="logoutUser()">🚪 Logout</a>
         </div>
     </div> 
   </div>

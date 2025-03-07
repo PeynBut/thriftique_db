@@ -26,9 +26,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 // Handle product creation
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'create') {
-    $name = $_POST['name'] ?? '';
+    $name = trim($_POST['name'] ?? '');
     $description = $_POST['description'] ?? '';
     $price = $_POST['price'] ?? '';
+
+    // Check if the product name already exists
+    $stmt = $conn->prepare("SELECT COUNT(*) FROM products WHERE name = ?");
+    $stmt->bind_param("s", $name);
+    $stmt->execute();
+    $stmt->bind_result($count);
+    $stmt->fetch();
+    $stmt->close();
+
+    if ($count > 0) {
+        $_SESSION['toast_message'] = [
+            "message" => "Product name already exists. Choose a different name.",
+            "type" => "error"
+        ];
+        header("Location: products.php");
+        exit;
+    }
 
     // Check if an image is uploaded
     if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
@@ -53,7 +70,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 $stmt->bind_param("ssds", $name, $description, $price, $imagePath);
 
                 if ($stmt->execute()) {
-                    echo json_encode(['success' => true, 'message' => 'Product added successfully']);
+                    $_SESSION['toast_message'] = ['type' => 'success', 'message' => 'Product added successfully'];
+                    header("Location: products.php");
+                    exit();
                 } else {
                     echo json_encode(['error' => true, 'message' => 'Database insertion error']);
                 }
@@ -120,8 +139,8 @@ $conn->close();
     </div>
     <div class="user-dropdown" id="userDropdown">
             <a href="http://localhost/thriftique_db/includes/v1/admin/settings.html">⚙️ Settings</a>
-            <a href="http://localhost/thriftique_db/includes/v1/admin/logout.php" onclick="logoutUser()">🚪 Logout</a>
             <a href="http://localhost/thriftique_db/includes/v1/admin/settings.html">🔒 Change Password</a>
+            <a href="http://localhost/thriftique_db/includes/v1/admin/logout.php" onclick="logoutUser()">🚪 Logout</a>
         </div>
     </div>
 </div>
@@ -149,6 +168,8 @@ $conn->close();
                     </tr>
                 </thead>
                 <tbody>
+                    <div id="toast-container"></div>
+
                     <?php if (!empty($products)) : ?>
                         <?php foreach ($products as $product) : ?>
                             <tr id="product-<?= $product['id'] ?>">
@@ -454,6 +475,26 @@ if (ws.readyState === WebSocket.OPEN) {
     console.error("WebSocket is not open. Cannot send message.");
 }
 }
+function showToast(message, type = "success") {
+    const toastContainer = document.getElementById("toast-container");
+    const toast = document.createElement("div");
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `${message} <button onclick="this.parentElement.remove()">×</button>`;
+    
+    toastContainer.appendChild(toast);
+
+    setTimeout(() => {
+        toast.remove();
+    }, 3000); // Remove after 3s
+}
+
+// Check if there's a toast message from PHP
+document.addEventListener("DOMContentLoaded", function () {
+    <?php if (isset($_SESSION['toast_message'])) : ?>
+        showToast("<?= $_SESSION['toast_message']['message'] ?>", "<?= $_SESSION['toast_message']['type'] ?>");
+        <?php unset($_SESSION['toast_message']); ?>
+    <?php endif; ?>
+});
 // Auto-fetch notifications every 5 seconds
 setInterval(fetchNotifications, 5000);
 fetchNotifications();
