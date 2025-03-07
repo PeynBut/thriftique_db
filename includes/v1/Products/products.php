@@ -213,22 +213,22 @@ $conn->close();
     </div>
     <!-- Add this inside the <body> -->
 <!-- Edit Product Modal -->
-<!-- Modal for Editing Product -->
 <div id="editProductModal" class="modal">
     <div class="modal-content">
         <span class="close" onclick="closeEditProductModal()">&times;</span>
         <h2>Edit Product</h2>
-        <form id="edit-product-form" action="update_product.php" method="POST" enctype="multipart/form-data">
-            <input type="hidden" name="action" value="update">
-            <input type="hidden" name="id" id="edit-product-id">
-            <input type="text" name="name" id="edit-product-name" placeholder="Product Name" required>
-            <textarea name="description" id="edit-product-description" placeholder="Product Description" required></textarea>
-            <input type="number" name="price" id="edit-product-price" placeholder="Product Price" required>
-            <input type="file" name="image" accept="image/*">
+        <form id="edit-product-form">
+            <input type="hidden" id="edit-product-id">
+            <input type="text" id="edit-product-name" placeholder="Product Name" required>
+            <textarea id="edit-product-description" placeholder="Product Description" required></textarea>
+            <input type="number" id="edit-product-price" placeholder="Product Price" required>
+            <input type="file" id="edit-product-image">
+            <img id="edit-product-image-preview" src="" width="100" style="display:none;">
             <button type="submit">Update Product</button>
         </form>
     </div>
 </div>
+
 
       <!-- Chat Section (Hidden Initially) -->
       <div id="chat-section" class="chat-box">
@@ -280,25 +280,41 @@ $conn->close();
         document.getElementById("productModal").style.display = "none";
     }
 
-    // Open and Close Edit Product Modal
-    function openEditProductModal(id, name, description, price) {
-        document.getElementById("editProductModal").style.display = "block";
-        document.getElementById("edit-product-id").value = id;
-        document.getElementById("edit-product-name").value = name;
-        document.getElementById("edit-product-description").value = description;
-        document.getElementById("edit-product-price").value = price;
-    }
+    function editProduct(productId) {
+        fetch(`http://localhost/thriftique_db/includes/v1/products/get_products.php?id=${productId}`)
+        .then(response => response.json())
+        .then(product => {
+            if (!product || product.error) {
+                console.error("Invalid product data received:", product);
+                return;
+            }
+            document.getElementById("edit-product-id").value = product.id;
+            document.getElementById("edit-product-name").value = product.name;
+            document.getElementById("edit-product-description").value = product.description;
+            document.getElementById("edit-product-price").value = product.price;
 
-    function closeEditProductModal() {
-        document.getElementById("editProductModal").style.display = "none";
-    }
+            if (product.image) {
+                document.getElementById("edit-product-image-preview").src = product.image;
+                document.getElementById("edit-product-image-preview").style.display = "block";
+            } else {
+                document.getElementById("edit-product-image-preview").style.display = "none";
+            }
 
-    // Close modal when clicking outside
-    window.onclick = function(event) {
-        if (event.target.classList.contains("modal")) {
-            event.target.style.display = "none";
-        }
+            document.getElementById("editProductModal").style.display = "block";
+        })
+        .catch(error => console.error("Error fetching product:", error));
+
+        window.onclick = function(event) {
+    let modal = document.getElementById("editProductModal");
+    if (event.target === modal) {
+        closeEditProductModal();
     }
+};
+
+}
+function closeEditProductModal() {
+    document.getElementById("editProductModal").style.display = "none";
+}
 
 
 // Add new product to the table
