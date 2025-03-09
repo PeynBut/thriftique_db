@@ -55,8 +55,8 @@
       <table id="ordersTable">
           <thead>
               <tr>
-                  <th>User ID</th>
-                  <th>Produuct ID</th>
+                  <th>User Name</th>
+                  <th>Produuct Name</th>
                   <th>Quantity</th>
                   <th>Total Price</th>
                   <th>Status</th>
@@ -98,24 +98,30 @@
         })
         .then(data => {
             let tableBody = document.querySelector("#ordersTable tbody");
-            tableBody.innerHTML = "";
+            tableBody.innerHTML = ""; // Clear previous data
+    
+            let rows = ""; // Store rows in a variable
             data.orders.forEach(order => {
-                let row = `<tr>
-                    <td>${order.user_id}</td>
-                   <td>${order.product_id}</td>
+                rows += `<tr>
+                    <td>${order.user_name}</td>
+                    <td>${order.product_name || "N/A"}</td> <!-- Prevent undefined errors -->
                     <td>${order.quantity}</td>
-                    <td>₱${order.total_price}</td>
+                    <td>${order.total_price}</td>
                     <td>${order.status}</td>
                     <td>
                         <button onclick="updateOrder(${order.id})">Update</button>
                         <button onclick="deleteOrder(${order.id})">Delete</button>
                     </td>
                 </tr>`;
-                tableBody.innerHTML += row;
             });
+    
+            tableBody.innerHTML = rows; // Update once after the loop
         })
         .catch(error => console.error('Error fetching orders:', error));
     }
+    
+
+    
     
     // Call fetchOrders() on page load
     document.addEventListener("DOMContentLoaded", fetchOrders);

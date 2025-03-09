@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
             case 'update':
                 if (isset($data['id']) && isset($data['status'])) {
-                    $result = $db->updateOrder($data['id'], $data['status']);
+                    $result = $db->trackOrder($data['id'], $data['status']);
                     if ($result == 1) {
                         $response['error'] = false;
                         $response['message'] = "Order updated successfully";
@@ -87,12 +87,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 } elseif ($_SERVER['REQUEST_METHOD'] == 'GET') {
     $db = new DBoperations();
+
     if (isset($_GET['id'])) {
         $order = $db->getOrderById($_GET['id']);
         if ($order) {
             $response['error'] = false;
-            // Format price with peso sign
             $order['total_price'] = "₱" . number_format($order['total_price'], 2);
+            // For getOrderById query, use first_name and last_name as they are selected
+            $order['user_name'] = $order['first_name'] . " " . $order['last_name'];
+            unset($order['user_id']);
+            unset($order['first_name']);
+            unset($order['last_name']);
             $response['order'] = $order;
         } else {
             $response['error'] = true;
@@ -102,25 +107,34 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $orders = $db->getOrderHistory($_GET['phone']);
         $response['error'] = false;
         $response['orders'] = array();
+
         while ($order = $orders->fetch_assoc()) {
-            // Format price with peso sign
             $order['total_price'] = "₱" . number_format($order['total_price'], 2);
+            // Using first_name & last_name as returned by getOrderHistory
+            $order['user_name'] = $order['first_name'] . " " . $order['last_name'];
+            unset($order['user_id']);
+            unset($order['first_name']);
+            unset($order['last_name']);
             array_push($response['orders'], $order);
         }
     } else {
         $orders = $db->getOrders();
         $response['error'] = false;
         $response['orders'] = array();
+
         while ($order = $orders->fetch_assoc()) {
-            // Format price with peso sign
-            $order['total_price'] = "" . number_format($order['total_price'], 2);
+            $order['total_price'] = "₱" . number_format($order['total_price'], 2);
+            // Use the pre-concatenated user_name field from getOrders query
+            unset($order['user_id']);
             array_push($response['orders'], $order);
         }
     }
 } else {
     $response['error'] = true;
-    $response['message'] = "Invalid request method";
+    $response['message'] = "Invalid request";
 }
 
 echo json_encode($response);
+exit; // Add this to stop further execution
+
 ?>

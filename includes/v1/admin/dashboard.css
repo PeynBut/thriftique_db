@@ -254,8 +254,10 @@ body {
 }
 
 canvas {
-    max-height: 250px !important; /* Adjust height for consistency */
+    width: 100% !important;
+    height: 400px !important;
 }
+
 
 /* Responsive Fix */
 @media (max-width: 768px) {

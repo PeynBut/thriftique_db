@@ -126,24 +126,69 @@
     });
 
     function createChart(elementId, label, labels, data, color) {
-        new Chart(document.getElementById(elementId).getContext("2d"), {
+        // Get today's date
+        const today = new Date();
+        const futureDate = new Date(today);
+        futureDate.setDate(today.getDate() + 1); // Future date
+    
+        // Format dates as YYYY-MM-DD in local timezone
+        const formatDate = (date) => {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-based
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        };
+    
+        // Ensure the recent date (today) is included in the labels
+        const recentDate = formatDate(today);
+        if (!labels.includes(recentDate)) {
+            labels.push(recentDate); // Add the recent date to labels
+            data.push(null); // Add a corresponding null value for the recent date
+        }
+    
+        // Update labels and data arrays
+        labels = [...labels, formatDate(futureDate)]; // Include future date
+        data = [...data, null]; // Add a corresponding null value for the future date
+    
+        // Get the canvas element and set its dimensions for landscape
+        const canvas = document.getElementById(elementId);
+        canvas.width = 800; // Set width for landscape
+        canvas.height = 400; // Set height for landscape
+    
+        new Chart(canvas.getContext("2d"), {
             type: "bar",
             data: {
-                labels: labels,
+                labels: labels, // Updated labels with recent date and future date
                 datasets: [{
                     label: label,
                     data: data,
                     backgroundColor: color,
-                    borderWidth: 1
+                    borderWidth: 1,
+                    barThickness: 20, // Adjust this value to make bars smaller or larger
                 }]
             },
             options: {
                 responsive: true,
-                scales: { y: { beginAtZero: true } }
+                maintainAspectRatio: false, // Disable default aspect ratio
+                aspectRatio: 2, // Adjust this value to control the landscape ratio (width/height)
+                scales: {
+                    y: { 
+                        beginAtZero: true 
+                    },
+                    x: {
+                        ticks: {
+                            autoSkip: false, // Ensure all labels (dates) are shown
+                            maxRotation: 0, // Prevent rotation (keep labels horizontal)
+                            callback: function (value) {
+                                // Ensure the date is displayed as a single line
+                                return labels[value];
+                            }
+                        }
+                    }
+                }
             }
         });
     }
-
     function updateCards(data) {
         if (data.length > 0) {
             document.querySelectorAll(".analytics-overview .card p")[0].textContent = `₱${data.reduce((acc, row) => acc + parseFloat(row.sales), 0).toLocaleString()}`;

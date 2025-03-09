@@ -188,29 +188,42 @@ class DBoperations {
 
     // Get all orders
     public function getOrders() {
-        $stmt = $this->con->prepare("SELECT * FROM orders");
+        $sql = "SELECT orders.*, 
+                       products.name AS product_name, 
+                       CONCAT(users.FirstName, ' ', users.Lastname) AS user_name
+                FROM orders 
+                LEFT JOIN users ON orders.user_id = users.id
+                LEFT JOIN products ON orders.product_id = products.id";
+    
+        return $this->con->query($sql);
+    }
+    
+    
+    
+    
+    public function getOrderById($id) {
+        $sql = "SELECT orders.*, users.first_name, users.last_name 
+                FROM orders 
+                JOIN users ON orders.user_id = users.id 
+                WHERE orders.id = ?";
+        $stmt = $this->con->prepare($sql);
+        $stmt->bind_param("i", $id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        return $result->fetch_assoc();
+    }
+    
+    public function getOrderHistory($phone) {
+        $sql = "SELECT orders.*, users.first_name, users.last_name 
+                FROM orders 
+                JOIN users ON orders.user_id = users.id 
+                WHERE users.phone = ?";
+        $stmt = $this->con->prepare($sql);
+        $stmt->bind_param("s", $phone);
         $stmt->execute();
         return $stmt->get_result();
     }
-
-    // Get a single order by ID
-    public function getOrderById($id) {
-        $stmt = $this->con->prepare("SELECT * FROM orders WHERE id = ?");
-        $stmt->bind_param("i", $id);
-        $stmt->execute();
-        return $stmt->get_result()->fetch_assoc();
-    }
-
-    // Update an order
-    public function updateOrder($id, $status) {
-        $stmt = $this->con->prepare("UPDATE orders SET status = ? WHERE id = ?");
-        $stmt->bind_param("si", $status, $id);
-        if ($stmt->execute()) {
-            return 1;
-        } else {
-            return 2;
-        }
-    }
+    
 
     // Delete an order
     public function deleteOrder($id) {
@@ -353,14 +366,7 @@ class DBoperations {
         $stmt->execute();
         return $stmt->get_result();
     }
-    public function getOrderHistory($phone) {
-        $stmt = $this->con->prepare("SELECT * FROM orders WHERE phone = ?");
-        $stmt->bind_param("s", $phone);
-        $stmt->execute();
-        return $stmt->get_result();
-    }
     public function trackOrder($phone, $tracking_number) {
-        // Implement the logic to track the order based on phone and tracking number
         // For example:
         $stmt = $this->con->prepare("SELECT * FROM orders WHERE phone = ? AND tracking_number = ?");
         $stmt->bind_param("ss", $phone, $tracking_number);
