@@ -24,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     $response['error'] = true;
                     $response['message'] = "Required fields are missing";
                 }
-                break;
+                break; 
 
             case 'update':
                 if (isset($data['id']) && isset($data['status'])) {
@@ -107,16 +107,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $orders = $db->getOrderHistory($_GET['phone']);
         $response['error'] = false;
         $response['orders'] = array();
-
         while ($order = $orders->fetch_assoc()) {
             $order['total_price'] = "₱" . number_format($order['total_price'], 2);
-            // Using first_name & last_name as returned by getOrderHistory
-            $order['user_name'] = $order['first_name'] . " " . $order['last_name'];
-            unset($order['user_id']);
-            unset($order['first_name']);
-            unset($order['last_name']);
+            $order['user_name'] = $order['Firstname'] . " " . $order['Lastname'];
+            unset($order['user_id'], $order['Firstname'], $order['Lastname']);
+            
+            // Add category to the response
+            $order['category'] = $order['category'];
+        
             array_push($response['orders'], $order);
         }
+        
     } else {
         $orders = $db->getOrders();
         $response['error'] = false;

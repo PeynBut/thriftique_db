@@ -190,6 +190,7 @@ class DBoperations {
     public function getOrders() {
         $sql = "SELECT orders.*, 
                        products.name AS product_name, 
+                       products.category AS category_name, 
                        CONCAT(users.FirstName, ' ', users.Lastname) AS user_name
                 FROM orders 
                 LEFT JOIN users ON orders.user_id = users.id
@@ -197,6 +198,8 @@ class DBoperations {
     
         return $this->con->query($sql);
     }
+    
+    
     
     
     
