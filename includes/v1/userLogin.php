@@ -1,7 +1,6 @@
 <?php
 require_once '../DBoperations.php';
 $response = array();
-$_SESSION['user_id'] = $user['id']; // Store Android user ID in session
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Get the raw POST data
@@ -12,8 +11,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $db = new DBoperations();
         if ($db->userLogin($data['email'], $data['password'])) {
             $user = $db->getUserByEmail($data['email']);
+            
+            // Now store Android user ID in session after $user is defined
+            $_SESSION['user_id'] = $user['id'];
+
             $token = bin2hex(random_bytes(16)); // Generate a random token
             $db->storeToken($user['id'], $token); // Store the token in the database
+            
             $response['error'] = false;
             $response['id'] = $user['id'];
             $response['firstName'] = $user['firstName'];

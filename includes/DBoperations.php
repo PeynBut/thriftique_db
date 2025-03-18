@@ -45,14 +45,28 @@ class DBoperations {
     
     
 
-    public function userLogin($email, $pass) {
-        $password = md5($pass); // Ensure this matches the hashing method used during registration
-        $stmt = $this->con->prepare("SELECT id FROM users WHERE email = ? AND password = ?");
-        $stmt->bind_param("ss", $email, $password);
+    public function userLogin($email, $password) {
+        $stmt = $this->con->prepare("SELECT password FROM users WHERE email = ?");
+        $stmt->bind_param("s", $email);
         $stmt->execute();
         $stmt->store_result();
-        return $stmt->num_rows > 0;
+    
+        if ($stmt->num_rows > 0) {
+            $stmt->bind_result($db_password);
+            $stmt->fetch();
+    
+            if (password_verify($password, $db_password)) { // <-- Checks hashed password
+                return true;
+            } else {
+                error_log("Password verification failed for user: $email");
+            }
+        } else {
+            error_log("User not found: $email");
+        }
+        return false;
     }
+    
+    
 
     public function getUserByEmail($email) {
         $stmt = $this->con->prepare("SELECT id, firstName, lastName, email FROM users WHERE email = ?");
