@@ -35,6 +35,15 @@ class DBoperations {
             }
         }
     }
+    public function checkUserExists($email) {
+        $stmt = $this->con->prepare("SELECT id FROM users WHERE email = ?");
+        $stmt->bind_param("s", $email);
+        $stmt->execute();
+        $stmt->store_result();
+        return $stmt->num_rows > 0; // Returns true if user exists
+    }
+    
+    
 
     public function userLogin($email, $pass) {
         $password = md5($pass); // Ensure this matches the hashing method used during registration
@@ -377,26 +386,25 @@ class DBoperations {
         $result = $stmt->get_result();
         return $result->fetch_assoc();
     }
-    public function registerUser($userData) {
-        $sql = "INSERT INTO users (firstName, lastName, email, password, phoneNumber, address, token) VALUES (?, ?, ?, ?, ?, ?, ?)";
-        $stmt = $this->con->prepare($sql);
-        $stmt->bind_param(
-            "sssssss",
-            $userData['firstName'],
-            $userData['lastName'],
-            $userData['email'],
-            $userData['password'],
-            $userData['phoneNumber'],
-            $userData['address'],
-            $userData['token']
-        );
     
-        if ($stmt->execute()) {
-            return true;
-        } else {
+    public function registerUser($firstName, $lastName, $email, $hashedPassword, $token) {
+        try {
+            $stmt = $this->con->prepare("INSERT INTO users (first_name, last_name, email, password, token) VALUES (?, ?, ?, ?, ?)");
+            $stmt->bind_param("sssss", $firstName, $lastName, $email, $hashedPassword, $token);
+            if ($stmt->execute()) {
+                return true;
+            } else {
+                error_log("MySQL Error: " . $stmt->error); // Log database error
+                return false;
+            }
+        } catch (Exception $e) {
+            error_log("Exception: " . $e->getMessage());
             return false;
         }
     }
+    
+    
+    
     
     public function registerAdmin($data) {
         $firstName = trim($data['first_name']);

@@ -1,4 +1,4 @@
-<?php
+??php
 require_once '../DBoperations.php';
 header("Content-Type: application/json");
 session_start(); // Ensure session starts before any output

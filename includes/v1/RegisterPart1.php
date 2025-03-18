@@ -1,10 +1,12 @@
 <?php
-// filepath: /c:/xampp2/htdocs/android/includes/v1/RegisterPart1.php
+// filepath: /c:/xampp2/htdocs/android/includes/v1/Register.php
 require_once '../DBoperations.php';
 header("Content-Type: application/json");
 
 $rawPostData = file_get_contents("php://input");
 $data = json_decode($rawPostData, true);
+error_log("Received data: " . print_r($data, true)); // Log received data
+
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     echo json_encode(['error' => true, 'message' => 'Invalid request method']);
@@ -35,14 +37,31 @@ if ($data['password'] !== $data['confirmPassword']) {
 // Secure password hashing
 $hashedPassword = password_hash($data['password'], PASSWORD_BCRYPT);
 
-// Store the first part of the registration data in a session
-session_start();
-$_SESSION['registration'] = [
-    'firstName' => $data['firstName'],
-    'lastName' => $data['lastName'],
-    'email' => $data['email'],
-    'password' => $hashedPassword
-];
+// Generate a secure token
+$token = bin2hex(random_bytes(32)); // Generates a 64-character unique token
 
-echo json_encode(['error' => false, 'message' => 'First part of registration completed']);
+try {
+    $db = new DBoperations();
+
+    // Check if email already exists
+    if ($db->checkUserExists($data['email'])) {
+        echo json_encode(['error' => true, 'message' => 'Email already registered']);
+        exit;
+    }
+
+    // Register user with token
+    $result = $db->registerUser($data['firstName'], $data['lastName'], $data['email'], $hashedPassword, $token);
+    
+    if ($result) {
+        echo json_encode([
+            'error' => false, 
+            'message' => 'Registration successful',
+            'token' => $token // Return the token
+        ]);
+    } else {
+        echo json_encode(['error' => true, 'message' => 'Registration failed']);
+    }
+} catch (Exception $e) {
+    echo json_encode(['error' => true, 'message' => 'Server error: ' . $e->getMessage()]);
+}
 ?>
