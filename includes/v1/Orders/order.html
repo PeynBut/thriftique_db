@@ -38,6 +38,7 @@
         <a href="http://localhost/thriftique_db/includes/v1/admin/settings.html">🔒 Change Password</a>
         <a href="http://localhost/thriftique_db/includes/v1/admin/logout.php" onclick="logoutUser()">🚪 Logout</a>
     </div>
+    
     </div>
 </div>
 
@@ -87,6 +88,21 @@
           sidebar.classList.toggle('active');
           content.classList.toggle('shift');
       }
+
+      function logoutUser() {
+        fetch("http://localhost/thriftique_db/includes/v1/admin/logout.php")
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert("Logged out successfully!");
+                    window.location.href = "http://localhost/thriftique_db/includes/v1/admin/login.php";
+                } else {
+                    alert("Logout failed. Please try again.");
+                }
+            })
+            .catch(error => console.error("Error:", error));
+    }
+    
 
       function fetchOrders() {
         fetch('http://localhost/thriftique_db/includes/v1/Orders/order.php')

@@ -6,6 +6,7 @@ header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type");
 
+echo json_encode(["success" => true, "message" => "Logged out successfully"]);
 // Database credentials
 $host = 'localhost';
 $dbname = 'thriftique';
@@ -138,10 +139,10 @@ $conn->close();
         <i class="fas fa-user-circle"></i>
     </div>
     <div class="user-dropdown" id="userDropdown">
-            <a href="http://localhost/thriftique_db/includes/v1/admin/settings.html">⚙️ Settings</a>
-            <a href="http://localhost/thriftique_db/includes/v1/admin/settings.html">🔒 Change Password</a>
-            <a href="http://localhost/thriftique_db/includes/v1/admin/logout.php" onclick="logoutUser()">🚪 Logout</a>
-        </div>
+    <a href="http://localhost/thriftique_db/includes/v1/admin/settings.html">⚙️ Settings</a>
+    <a href="http://localhost/thriftique_db/includes/v1/admin/settings.html">🔒 Change Password</a>
+    <a href="http://localhost/thriftique_db/includes/v1/admin/logout.php" onclick="logoutUser()">🚪 Logout</a>
+    </div>
     </div>
 </div>
 
@@ -250,6 +251,21 @@ $conn->close();
             document.getElementById('sidebar').classList.toggle('active');
             document.getElementById('content').classList.toggle('shift');
         }
+
+        function logoutUser() {
+    fetch("http://localhost/thriftique_db/includes/v1/admin/logout.php")
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert("Logged out successfully!");
+                window.location.href = "http://localhost/thriftique_db/includes/v1/admin/login.php";
+            } else {
+                alert("Logout failed. Please try again.");
+            }
+        })
+        .catch(error => console.error("Error:", error));
+}
+
 
         function deleteProduct(productId) {
             if (confirm("Are you sure you want to delete this product?")) {

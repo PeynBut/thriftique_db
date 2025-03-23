@@ -30,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     if (isset($_GET['id'])) {
         // Fetch a single product by ID
         $productId = $_GET['id'];
-        $stmt = $conn->prepare("SELECT id, name, description, price, image FROM products WHERE id = ?");
+        $stmt = $conn->prepare("SELECT id, name, description, price, image, stock FROM products WHERE id = ?");
         $stmt->bind_param("i", $productId);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -41,9 +41,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         } else {
             echo json_encode(["error" => true, "message" => "Product not found"]);
         }
+        
     } else {
         // Fetch all products
-        $query = "SELECT id, name, description, price, image FROM products";
+        $query = "SELECT id, name, description, price, image, stock FROM products";
         $result = $conn->query($query);
         $products = [];
 

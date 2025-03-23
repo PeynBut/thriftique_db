@@ -4,7 +4,6 @@ header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: POST");
 header("Access-Control-Allow-Headers: Content-Type");
 
-// Include database connection class
 include_once '../DBconnection.php';
 
 function registerUser($first_name, $last_name, $email, $password_raw, $confirm_pass) {
@@ -38,6 +37,7 @@ function registerUser($first_name, $last_name, $email, $password_raw, $confirm_p
     $checkEmail->store_result();
 
     if ($checkEmail->num_rows > 0) {
+        $checkEmail->close();
         return json_encode(["error" => "Email already registered"]);
     }
 
@@ -46,14 +46,25 @@ function registerUser($first_name, $last_name, $email, $password_raw, $confirm_p
     $stmt->bind_param("sssss", $first_name, $last_name, $email, $password, $token);
 
     if ($stmt->execute()) {
-        return json_encode(["message" => "Registration successful", "token" => $token]);
+        $response = ["message" => "Registration successful", "token" => $token];
     } else {
-        return json_encode(["error" => "Failed to register user", "detail" => $stmt->error]);
+        $response = ["error" => "Failed to register user", "detail" => $stmt->error, "sql_state" => $stmt->sqlstate];
     }
+
+    $checkEmail->close();
+    $stmt->close();
+    $conn->close();
+
+    return json_encode($response);
 }
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $data = json_decode(file_get_contents("php://input"), true);
+
+    if (!$data) {
+        $data = $_POST;
+    }
+
     echo registerUser(
         $data["first_name"] ?? $data["firstName"] ?? null,
         $data["last_name"] ?? $data["lastName"] ?? null,
