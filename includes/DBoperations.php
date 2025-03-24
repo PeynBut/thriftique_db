@@ -4,10 +4,20 @@ require_once 'DBconnection.php';
 class DBoperations {
     private $con;
 
-    function __construct() {
-        $db = new DBconnection();
-        $this->con = $db->connection();
+    public function __construct() {
+        // Assuming you're using mysqli to connect
+        $this->con = new mysqli("localhost", "root", "", "thriftique");
+        
+        if ($this->con->connect_error) {
+            die("Connection failed: " . $this->con->connect_error);
+        }
     }
+
+    public function connection() {
+        return $this->con; // Return the database connection
+    }
+
+
     // Create a new user
     /** Check if user exists */
     private function isUserExist($email) {
@@ -150,94 +160,144 @@ class DBoperations {
         }
     }
     //Category Management System
-    // Create a new category
-    public function createCategory($name, $description) {
-        $stmt = $this->con->prepare("INSERT INTO categories (name, description) VALUES (?, ?)");
-        $stmt->bind_param("ss", $name, $description);
-        if ($stmt->execute()) {
-            return 1;
-        } else {
-            return 2;
+   // Create a new category
+public function createCategory($name, $description) {
+    $stmt = $this->con->prepare("INSERT INTO categories (name, description) VALUES (?, ?)");
+    $stmt->bind_param("ss", $name, $description);
+    return $stmt->execute() ? "Category created successfully" : "Failed to create category";
+}
+
+// Get all categories
+public function getCategories() {
+    $stmt = $this->con->prepare("SELECT * FROM categories ORDER BY name ASC");
+    $stmt->execute();
+    return $stmt->get_result();
+}
+
+// Get a single category by ID
+public function getCategoryById($id) {
+    $stmt = $this->con->prepare("SELECT * FROM categories WHERE id = ?");
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+    return $stmt->get_result()->fetch_assoc();
+}
+
+// Update a category (with existence check)
+public function updateCategory($id, $name, $description) {
+    if (!$this->getCategoryById($id)) {
+        return "Category not found";
+    }
+
+    $stmt = $this->con->prepare("UPDATE categories SET name = ?, description = ? WHERE id = ?");
+    $stmt->bind_param("ssi", $name, $description, $id);
+    return $stmt->execute() ? "Category updated successfully" : "Failed to update category";
+}
+
+// Delete a category (check if products exist before deletion)
+public function deleteCategory($id) {
+    if (!$this->getCategoryById($id)) {
+        return "Category not found";
+    }
+
+    // Check if there are products linked to this category
+    $stmt = $this->con->prepare("SELECT COUNT(*) FROM products WHERE category_id = ?");
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+    $stmt->bind_result($count);
+    $stmt->fetch();
+
+    if ($count > 0) {
+        return "Cannot delete category: products are associated with it";
+    }
+
+    // Proceed with deletion
+    $stmt = $this->con->prepare("DELETE FROM categories WHERE id = ?");
+    $stmt->bind_param("i", $id);
+    return $stmt->execute() ? "Category deleted successfully" : "Failed to delete category";
+}
+//Order Management System
+public function createOrder($user_id, $product_id, $quantity, $total_price) {
+    // Get the product price from the database
+    $stmt = $this->con->prepare("SELECT price FROM products WHERE id = ?");
+    $stmt->bind_param("i", $product_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    if ($row = $result->fetch_assoc()) {
+        $price = $row['price']; // Get the price from products table
+        $total_price = $price * $quantity; // Calculate total price
+    } else {
+        return 2; // Product not found
+    }
+
+    // Set default order status to 'Placed'
+    $status = "Placed";
+
+    // Insert order with calculated price and default status
+    $stmt = $this->con->prepare("INSERT INTO orders (user_id, product_id, quantity, price, total_price, status) VALUES (?, ?, ?, ?, ?, ?)");
+    $stmt->bind_param("iiidds", $user_id, $product_id, $quantity, $price, $total_price, $status);
+
+    if ($stmt->execute()) {
+        return 1;
+    } else {
+        return 2;
+    }
+}
+
+public function updateOrderStatus($order_id, $status) {
+    // Define allowed statuses
+    $allowedStatuses = ['Placed', 'Preparing', 'Ready', 'Completed'];
+
+    // Check if the given status is valid
+    if (!in_array($status, $allowedStatuses)) {
+        return 3; // Invalid status
+    }
+
+    $stmt = $this->con->prepare("UPDATE orders SET status = ? WHERE id = ?");
+    $stmt->bind_param("si", $status, $order_id);
+
+    if ($stmt->execute()) {
+        return 1; // Success
+    } else {
+        return 2; // Failure
+    }
+}
+
+    public function getOrders() {
+        $conn = $this->con;
+        $sql = "SELECT o.*, 
+                       p.name AS product_name, 
+                       p.category AS category_name, 
+                       u.FirstName, 
+                       u.Lastname 
+                FROM orders o
+                LEFT JOIN users u ON o.user_id = u.id
+                LEFT JOIN products p ON o.product_id = p.id
+                ORDER BY o.created_at DESC";
+    
+        return $conn->query($sql);
+    }
+    
+    
+
+    
+    // Get a single order by ID
+    public function getOrderById($id) {
+        // Ensure ID is a valid positive integer
+        if (!is_numeric($id) || $id <= 0) {
+            return null; // Prevent query execution
         }
-    }
-
-    // Get all categories
-    public function getCategories() {
-        $stmt = $this->con->prepare("SELECT * FROM categories");
-        $stmt->execute();
-        return $stmt->get_result();
-    }
-
-    // Get a single category by ID
-    public function getCategoryById($id) {
-        $stmt = $this->con->prepare("SELECT * FROM categories WHERE id = ?");
+    
+        $stmt = $this->con->prepare("SELECT orders.*, 
+                                            users.FirstName, users.Lastname 
+                                     FROM orders 
+                                     LEFT JOIN users ON orders.user_id = users.id
+                                     WHERE orders.id = ?");
         $stmt->bind_param("i", $id);
         $stmt->execute();
         return $stmt->get_result()->fetch_assoc();
     }
-
-    // Update a category
-    public function updateCategory($id, $name, $description) {
-        $stmt = $this->con->prepare("UPDATE categories SET name = ?, description = ? WHERE id = ?");
-        $stmt->bind_param("ssi", $name, $description, $id);
-        if ($stmt->execute()) {
-            return 1;
-        } else {
-            return 2;
-        }
-    }
-
-    // Delete a category
-    public function deleteCategory($id) {
-        $stmt = $this->con->prepare("DELETE FROM categories WHERE id = ?");
-        $stmt->bind_param("i", $id);
-        if ($stmt->execute()) {
-            return 1;
-        } else {
-            return 2;
-        }
-    }
-    //Order Management System
-    // Create a new order
-    public function createOrder($user_id, $product_id, $quantity, $total_price) {
-        $stmt = $this->con->prepare("INSERT INTO orders (user_id, product_id, quantity, total_price) VALUES (?, ?, ?, ?)");
-        $stmt->bind_param("iiid", $user_id, $product_id, $quantity, $total_price);
-        if ($stmt->execute()) {
-            return 1;
-        } else {
-            return 2;
-        }
-    }
-
-    // Get all orders
-    public function getOrders() {
-        $sql = "SELECT orders.*, 
-                       products.name AS product_name, 
-                       products.category AS category_name, 
-                       CONCAT(users.FirstName, ' ', users.Lastname) AS user_name
-                FROM orders 
-                LEFT JOIN users ON orders.user_id = users.id
-                LEFT JOIN products ON orders.product_id = products.id";
     
-        return $this->con->query($sql);
-    }
-    
-    
-    
-    
-    
-    
-    public function getOrderById($id) {
-        $sql = "SELECT orders.*, users.first_name, users.last_name 
-                FROM orders 
-                JOIN users ON orders.user_id = users.id 
-                WHERE orders.id = ?";
-        $stmt = $this->con->prepare($sql);
-        $stmt->bind_param("i", $id);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        return $result->fetch_assoc();
-    }
     
     public function getOrderHistory($phone) {
         $sql = "SELECT orders.*, users.first_name, users.last_name 

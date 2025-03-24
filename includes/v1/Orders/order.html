@@ -9,17 +9,13 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/js/all.min.js"></script>
 </head>
 <body>
-  <!-- Top Navigation Bar -->
   <div class="top-bar">
       <div class="menu-toggle" onclick="toggleMenu()">☰</div>
       <h2 style="margin-left: 20px;">Order Management</h2>
 
-      <!-- Notification Icon -->
       <div class="notification-container" onclick="toggleNotifications(event)">
           <i class="fas fa-bell notification-bell" aria-label="Notifications"></i>
           <span class="badge" id="notification-count" style="display: none;">0</span>
-
-          <!-- Notifications Dropdown -->
           <div class="notification-dropdown" id="notifications">
               <h4>Notifications</h4>
               <ul id="notification-list">
@@ -27,26 +23,24 @@
               </ul>
           </div>
       </div>
-    <!-- User Dropdown Menu -->
-<div class="user-menu">
-    <div class="user-info" onclick="toggleUserMenu(event)">
-        <span id="username">Admin</span> <!-- Placeholder for dynamic name -->
-        <i class="fas fa-user-circle"></i>
-    </div>
-    <div class="user-dropdown" id="userDropdown">
-        <a href="http://localhost/thriftique_db/includes/v1/admin/settings.html">⚙️ Settings</a>
-        <a href="http://localhost/thriftique_db/includes/v1/admin/settings.html">🔒 Change Password</a>
-        <a href="http://localhost/thriftique_db/includes/v1/admin/logout.php" onclick="logoutUser()">🚪 Logout</a>
-    </div>
-    
-    </div>
-</div>
+      <div class="user-menu">
+          <div class="user-info" onclick="toggleUserMenu(event)">
+              <span id="username">Admin</span>
+              <i class="fas fa-user-circle"></i>
+          </div>
+          <div class="user-dropdown" id="userDropdown">
+              <a href="settings.html">⚙️ Settings</a>
+              <a href="change-password.html">🔒 Change Password</a>
+              <a href="logout.php" onclick="logoutUser()">🚪 Logout</a>
+          </div>
+      </div>
+  </div>
 
   <div class="sidebar" id="sidebar">
-      <a href="http://localhost/thriftique_db/includes/v1/admin/dashboard.html">🏠 Dashboard</a>
-      <a href="http://localhost/thriftique_db/includes/v1/Products/products.php">📦 Products</a>
-      <a href="http://localhost/thriftique_db/includes/v1/Orders/order.html">📦 Orders</a>
-      <a href="http://localhost/thriftique_db/includes/v1/Categories/Categories.php">📂 Categories</a>
+      <a href="dashboard.html">🏠 Dashboard</a>
+      <a href="products.php">📦 Products</a>
+      <a href="order.html">📦 Orders</a>
+      <a href="categories.php">📂 Categories</a>
       <a href="#" onclick="openChat()">💬 Messages</a>
   </div>
 
@@ -57,7 +51,7 @@
           <thead>
               <tr>
                   <th>Customer Name</th>
-                  <th>Produuct Name</th>
+                  <th>Product Name</th>
                   <th>Quantity</th>
                   <th>Total Price</th>
                   <th>Status</th>
@@ -67,249 +61,267 @@
           <tbody></tbody>
       </table>
   </div>
-  
-      <!-- Chat Section (Hidden Initially) -->
-      <div id="chat-section" class="chat-box">
-        <div class="chat-header">
-            <h3>Live Chat</h3>
-            <button onclick="closeChat()">✖</button>
-        </div>
-        <div id="chat-messages" class="chat-messages"></div>
-        <div class="chat-input">
-            <input type="text" id="chatMessage" placeholder="Type a message..." />
-            <button onclick="sendMessage()">Send</button>
-        </div>
-    </div>
 
-  <script>
-      function toggleMenu() {
-          const sidebar = document.getElementById('sidebar');
-          const content = document.getElementById('content');
-          sidebar.classList.toggle('active');
-          content.classList.toggle('shift');
-      }
+  <div id="chat-section" class="chat-box" style="display: none;">
+      <div class="chat-header">
+          <h3>Live Chat</h3>
+          <button onclick="closeChat()">✖</button>
+      </div>
+      <div id="chat-messages" class="chat-messages"></div>
+      <div class="chat-input">
+          <input type="text" id="chatMessage" placeholder="Type a message..." />
+          <button onclick="sendMessage()">Send</button>
+      </div>
+  </div>
 
-      function logoutUser() {
-        fetch("http://localhost/thriftique_db/includes/v1/admin/logout.php")
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert("Logged out successfully!");
-                    window.location.href = "http://localhost/thriftique_db/includes/v1/admin/login.php";
-                } else {
-                    alert("Logout failed. Please try again.");
-                }
-            })
-            .catch(error => console.error("Error:", error));
-    }
-    
+<script>
+  // Enum for Order Actions
+const OrderActions = Object.freeze({
+    CREATE: "create",
+    UPDATE: "update",
+    DELETE: "delete",
+    TRACK: "track"
+});
 
-      function fetchOrders() {
-        fetch('http://localhost/thriftique_db/includes/v1/Orders/order.php')
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            let tableBody = document.querySelector("#ordersTable tbody");
-            tableBody.innerHTML = ""; // Clear previous data
-    
-            let rows = ""; // Store rows in a variable
-            data.orders.forEach(order => {
-                rows += `<tr>
-                    <td>${order.user_name}</td>
-                    <td>${order.product_name || "N/A"}</td> <!-- Prevent undefined errors -->
-                    <td>${order.quantity}</td>
-                    <td>${order.total_price}</td>
-                    <td>${order.status}</td>
-                    <td>
-                        <button onclick="updateOrder(${order.id})">Update</button>
-                        <button onclick="deleteOrder(${order.id})">Delete</button>
-                    </td>
-                </tr>`;
-            });
-    
-            tableBody.innerHTML = rows; // Update once after the loop
-        })
-        .catch(error => console.error('Error fetching orders:', error));
-    }
-    
+document.addEventListener("DOMContentLoaded", () => {
+    fetchOrders();
+    fetchNotifications();
+    fetchUserDetails();
+    connectWebSocket();
 
-    
-    
-    // Call fetchOrders() on page load
-    document.addEventListener("DOMContentLoaded", fetchOrders);
-    
-    function updateOrder(orderId) {
-        let newStatus = prompt("Enter new status for Order ID " + orderId + ":");
-        if (newStatus) {
-            fetch('http://localhost/thriftique_db/includes/v1/Orders/order.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'update', id: orderId, status: newStatus })
-            })
-            .then(response => response.json())
-            .then(data => {
-                alert(data.message);
-                fetchOrders(); // Refresh orders after update
-            })
-            .catch(error => console.error('Error updating order:', error));
+    // Auto-refresh notifications every 5 seconds
+    setInterval(fetchNotifications, 5000);
+});
+
+// Sidebar Toggle
+function toggleMenu() {
+    document.getElementById("sidebar").classList.toggle("active");
+    document.getElementById("content").classList.toggle("shift");
+}
+
+// Logout User
+async function logoutUser() {
+    try {
+        const response = await fetch("http://localhost/thriftique_db/includes/v1/admin/logout.php");
+        const data = await response.json();
+
+        if (data.success) {
+            alert("Logged out successfully!");
+            window.location.href = "http://localhost/thriftique_db/includes/v1/admin/login.php";
+        } else {
+            alert("Logout failed. Please try again.");
         }
+    } catch (error) {
+        console.error("Error:", error);
     }
-    
-    function deleteOrder(orderId) {
-        if (confirm("Are you sure you want to delete this order?")) {
-            fetch('http://localhost/thriftique_db/includes/v1/Orders/order.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'delete', id: orderId })
-            })
-            .then(response => response.json())
-            .then(data => {
-                alert(data.message);
-                fetchOrders(); // Refresh orders after deletion
-            })
-            .catch(error => console.error('Error deleting order:', error));
+}
+
+// Fetch Orders
+async function fetchOrders() {
+    try {
+        const response = await fetch("http://localhost/thriftique_db/includes/v1/Orders/order.php");
+        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+
+        const data = await response.json();
+        console.log(data);  // Log the response to inspect the data
+
+        const tableBody = document.querySelector("#ordersTable tbody");
+
+        tableBody.innerHTML = data.orders.map(order => `
+            <tr>
+                <td>${order.user_name || "Unknown"}</td>
+                <td>${order.product_name || "N/A"}</td>
+                <td>${order.quantity || 0}</td>
+                <td>${order.total_price}</td>
+                <td>${order.status}</td>
+                <td>
+                    <button onclick="updateOrder(${order.id})">Update</button>
+                    <button onclick="deleteOrder(${order.id})">Delete</button>
+                </td>
+            </tr>
+        `).join("");
+    } catch (error) {
+        console.error("Error fetching orders:", error);
+    }
+}
+
+
+// Update Order
+async function updateOrder(orderId) {
+    const newStatus = prompt("Enter new status: Placed, Preparing, Ready, Completed");
+
+    if (!newStatus) {
+        alert("Invalid status entered!");
+        return;
+    }
+
+    // Normalize input (case-insensitive)
+    const formattedStatus = newStatus.trim().toLowerCase();
+
+    // Valid statuses with correct formatting
+    const validStatuses = {
+        "placed": "Placed",
+        "preparing": "Preparing",
+        "ready": "Ready",
+        "completed": "Completed"
+    };
+
+    if (!validStatuses[formattedStatus]) {
+        alert("Invalid status entered!");
+        return;
+    }
+
+    try {
+        const response = await fetch("http://localhost/thriftique_db/includes/v1/Orders/order.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: OrderActions.UPDATE, id: orderId, status: validStatuses[formattedStatus] }) // Send correctly formatted status
+        });
+
+        const data = await response.json();
+        alert(data.message);
+        fetchOrders();  // Refresh the orders table
+    } catch (error) {
+        console.error("Error updating order:", error);
+    }
+}
+
+
+
+// Delete Order
+async function deleteOrder(orderId) {
+    if (!confirm("Are you sure you want to delete this order?")) return;
+
+    try {
+        const response = await fetch("http://localhost/thriftique_db/includes/v1/Orders/order.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: OrderActions.DELETE, id: orderId })
+        });
+
+        const data = await response.json();
+        alert(data.message);
+        fetchOrders();
+    } catch (error) {
+        console.error("Error deleting order:", error);
+    }
+}
+
+// Fetch Notifications
+async function fetchNotifications() {
+    try {
+        const response = await fetch("get_notifications.php");
+        const data = await response.json();
+
+        const notificationList = document.getElementById("notification-list");
+        const notificationCount = document.getElementById("notification-count");
+
+        notificationList.innerHTML = data.length
+            ? data.map(n => `<li>${n.message}</li>`).join("")
+            : "<li>No new notifications</li>";
+
+        notificationCount.style.display = data.length ? "block" : "none";
+        notificationCount.innerText = data.length;
+
+    } catch (error) {
+        console.error("Error fetching notifications:", error);
+    }
+}
+
+// Fetch User Details
+async function fetchUserDetails() {
+    try {
+        const response = await fetch("http://localhost/thriftique_db/includes/v1/admin/get_user.php");
+        const data = await response.json();
+
+        if (data.first_name) {
+            document.getElementById("username").textContent = `${data.first_name} ${data.last_name}`;
+        } else {
+            console.warn("User not found or not logged in");
         }
+    } catch (error) {
+        console.error("Error fetching user data:", error);
     }
+}
 
-      function toggleNotifications(event) {
-          event.stopPropagation(); // Prevents closing immediately when clicking inside
-          document.getElementById('notifications').classList.toggle('show');
-      }
+// Toggle User Menu
+function toggleUserMenu(event) {
+    event.stopPropagation();
+    document.getElementById("userDropdown").classList.toggle("active");
+}
 
-      function fetchNotifications() {
-          fetch('get_notifications.php')
-              .then(response => response.json())
-              .then(data => {
-                  let notificationList = document.getElementById('notification-list');
-                  let notificationCount = document.getElementById('notification-count');
-
-                  notificationList.innerHTML = "";
-                  if (data.length > 0) {
-                      notificationCount.style.display = "block";
-                      notificationCount.innerText = data.length;
-
-                      data.forEach(notification => {
-                          let li = document.createElement('li');
-                          li.innerText = notification.message;
-                          notificationList.appendChild(li);
-                      });
-                  } else {
-                      notificationList.innerHTML = "<li>No new notifications</li>";
-                      notificationCount.style.display = "none";
-                  }
-              })
-              .catch(error => console.error('Error fetching notifications:', error));
-      }
-
-      // Auto-fetch notifications every 5 seconds
-      setInterval(fetchNotifications, 5000);
-      fetchNotifications(); // Initial fetch on page load
-
-      function toggleUserMenu(event) {
-        event.stopPropagation(); // Prevents event from bubbling to the document
-        const dropdown = document.getElementById("userDropdown");
-        dropdown.classList.toggle("active");
+// Close dropdown when clicking outside
+document.addEventListener("click", event => {
+    const dropdown = document.getElementById("userDropdown");
+    if (dropdown.classList.contains("active") && !event.target.closest(".user-menu")) {
+        dropdown.classList.remove("active");
     }
-    
-    // Close dropdown when clicking outside
-    document.addEventListener("click", function (event) {
-        const dropdown = document.getElementById("userDropdown");
-        if (dropdown.classList.contains("active") && !event.target.closest(".user-menu")) {
-            dropdown.classList.remove("active");
-        }
-    });
-    
-    
-    document.addEventListener("DOMContentLoaded", async function () {
-        try {
-            const response = await fetch("http://localhost/thriftique_db/includes/v1/admin/get_user.php");
-            const data = await response.json();
-    
-            if (data.first_name) {
-                document.getElementById("username").textContent = `${data.first_name} ${data.last_name}`;
-            } else {
-                console.warn("User not found or not logged in");
-            }
-        } catch (error) {
-            console.error("Error fetching user data:", error);
-        }
-    });
-    function openChat() {
-        document.getElementById('chat-section').style.display = "block";
-    }
+});
 
-    function closeChat() {
-        document.getElementById('chat-section').style.display = "none";
-    }
+// Chatbox
+function openChat() {
+    document.getElementById("chat-section").style.display = "block";
+}
 
-    // WebSocket Connection
-    let ws;
+function closeChat() {
+    document.getElementById("chat-section").style.display = "none";
+}
+
+// WebSocket Connection
+let ws;
 
 function connectWebSocket() {
-ws = new WebSocket("ws://localhost:8080");
+    ws = new WebSocket("ws://localhost:8080");
 
-ws.onopen = function () {
-    console.log("Connected to WebSocket");
-};
+    ws.onopen = () => console.log("Connected to WebSocket");
 
-ws.onmessage = function (event) {
-    console.log("WebSocket message received:", event.data);
+    ws.onmessage = event => {
+        console.log("WebSocket message received:", event.data);
 
-    const chatMessages = document.getElementById("chat-messages");
-    if (!chatMessages) {
-        console.error("Chat messages container not found!");
-        return;
-    }
+        const chatMessages = document.getElementById("chat-messages");
+        if (!chatMessages) return console.error("Chat messages container not found!");
 
-    const data = JSON.parse(event.data);
-    if (!data.message) {
-        console.error("Invalid message format received:", data);
-        return;
-    }
+        try {
+            const data = JSON.parse(event.data);
+            if (!data.message) throw new Error("Invalid message format received");
 
-    const message = document.createElement("div");
-    message.classList.add("message");
-    message.textContent = `${data.sender}: ${data.message}`;
+            const message = document.createElement("div");
+            message.classList.add("message");
+            message.textContent = `${data.sender}: ${data.message}`;
 
-    chatMessages.appendChild(message);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-};
+            chatMessages.appendChild(message);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        } catch (error) {
+            console.error("Error processing WebSocket message:", error);
+        }
+    };
 
-ws.onclose = function () {
-    console.warn("WebSocket closed. Reconnecting in 3 seconds...");
-    setTimeout(connectWebSocket, 3000); // Reconnect after 3s
-};
+    ws.onclose = () => {
+        console.warn("WebSocket closed. Reconnecting in 3 seconds...");
+        setTimeout(connectWebSocket, 3000);
+    };
 
-ws.onerror = function (error) {
-    console.error("WebSocket error:", error);
-    ws.close();
-};
+    ws.onerror = error => {
+        console.error("WebSocket error:", error);
+        ws.close();
+    };
 }
 
-// Start WebSocket connection
-connectWebSocket();
-
+// Send Chat Message
 function sendMessage() {
-const input = document.getElementById("chatMessage");
-const message = input.value.trim();
+    const input = document.getElementById("chatMessage");
+    const message = input.value.trim();
 
-if (!message) {
-    console.warn("Cannot send an empty message.");
-    return;
+    if (!message) return console.warn("Cannot send an empty message.");
+
+    if (ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ sender: "Admin", receiver: "User", message }));
+        input.value = "";
+    } else {
+        console.error("WebSocket is not open. Cannot send message.");
+    }
 }
 
-if (ws.readyState === WebSocket.OPEN) {
-    ws.send(JSON.stringify({ sender: "Admin", receiver: "User", message: message }));
-    input.value = "";
-} else {
-    console.error("WebSocket is not open. Cannot send message.");
-}
-}
-    
-  </script>
+</script>
 </body>
 </html>
