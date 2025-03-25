@@ -6,7 +6,6 @@ header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type");
 
-echo json_encode(["success" => true, "message" => "Logged out successfully"]);
 // Database credentials
 $host = 'localhost';
 $dbname = 'thriftique';
@@ -30,6 +29,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $name = trim($_POST['name'] ?? '');
     $description = $_POST['description'] ?? '';
     $price = $_POST['price'] ?? '';
+    $category = $_POST['category'] ?? ''; 
+    $stock = isset($_POST['stock']) ? intval($_POST['stock']) : 0;
+
+
+    // Validate stock as an integer
+    if (!is_numeric($stock) || intval($stock) < 0) {
+        $_SESSION['toast_message'] = [
+            "message" => "Stock must be a non-negative number.",
+            "type" => "error"
+        ];
+        header("Location: products.php");
+        exit;
+    }
+    $stock = intval($stock);
 
     // Check if the product name already exists
     $stmt = $conn->prepare("SELECT COUNT(*) FROM products WHERE name = ?");
@@ -67,8 +80,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
             // Move uploaded file
             if (move_uploaded_file($imageTmpName, $imagePath)) {
-                $stmt = $conn->prepare("INSERT INTO products (name, description, price, image) VALUES (?, ?, ?, ?)");
-                $stmt->bind_param("ssds", $name, $description, $price, $imagePath);
+                $stmt = $conn->prepare("INSERT INTO products (name, description, price, category, stock, image) VALUES (?, ?, ?, ?, ?, ?)");
+                $stmt->bind_param("ssdsss", $name, $description, $price, $category, $stock, $imagePath);
 
                 if ($stmt->execute()) {
                     $_SESSION['toast_message'] = ['type' => 'success', 'message' => 'Product added successfully'];
@@ -92,17 +105,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
 }
 
-// Fetch products from the database
-$sql = "SELECT id, name, description, price, image FROM products ORDER BY id DESC";
-$result = $conn->query($sql);
+// Fetch products
 $products = [];
-
-while ($row = $result->fetch_assoc()) {
-    $products[] = $row;
+$query = "SELECT id, name, description, price, category, stock, image FROM products";
+$result = $conn->query($query);
+if ($result) {
+    while ($row = $result->fetch_assoc()) {
+        $products[] = $row;
+    }
 }
 
 $conn->close();
 ?>
+
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -161,15 +177,17 @@ $conn->close();
             <table>
                 <thead>
                     <tr>
-                        <th>Image</th>
+                    <th>Image</th>
                         <th>Product Name</th>
                         <th>Description</th>
                         <th>Price</th>
+                        <th>Category</th> <!-- Added Category Column -->
+                        <th>Stock</th>
                         <th>Action</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <div id="toast-container"></div>
+    <div id="toast-container"></div>
 
                     <?php if (!empty($products)) : ?>
                         <?php foreach ($products as $product) : ?>
@@ -178,18 +196,21 @@ $conn->close();
                                 <td><?= htmlspecialchars($product['name']) ?></td>
                                 <td><?= htmlspecialchars($product['description']) ?></td>
                                 <td>$<?= number_format($product['price'], 2) ?></td>
+                                <td><?= htmlspecialchars($product['category']) ?></td> <!-- Display Category -->
+                                <td><?= $product['stock'] ?></td> <!-- Display Stock -->
                                 <td>
-                                <button onclick="editProduct(<?= $product['id'] ?>)">✏️ Edit</button>
-                                <button onclick="deleteProduct(<?= $product['id'] ?>)">🗑 Delete</button>
+                                    <button onclick="editProduct(<?= $product['id'] ?>)">✏️ Edit</button>
+                                    <button onclick="deleteProduct(<?= $product['id'] ?>)">🗑 Delete</button>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
                     <?php else : ?>
                         <tr>
-                            <td colspan="5">No products found.</td>
+                            <td colspan="6">No products found.</td>
                         </tr>
                     <?php endif; ?>
                 </tbody>
+
             </table>
         </div>
     </div>
@@ -197,22 +218,33 @@ $conn->close();
     <!-- Floating Action Button -->
     <div class="fab" onclick="openProductModal()">+</div>
 
-    <!-- Modal for Product Creation -->
-    <div id="productModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeProductModal()">&times;</span>
-            <h2>Create New Product</h2>
-            <form id="product-form" action="products.php" method="POST" enctype="multipart/form-data">
-                <input type="hidden" name="action" value="create">
-                <input type="text" name="name" placeholder="Product Name" required>
-                <textarea name="description" placeholder="Product Description" required></textarea>
-                <input type="number" name="price" placeholder="Product Price" required>
-                <input type="file" name="image" accept="image/*" required>
-                <button type="submit">Create Product</button>
-            </form>
-        </div>
+  <!-- Modal for Product Creation -->
+<div id="productModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeProductModal()">&times;</span>
+        <h2>Create New Product</h2>
+        <form id="product-form" action="products.php" method="POST" enctype="multipart/form-data">
+            <input type="hidden" name="action" value="create">
+            <input type="text" name="name" placeholder="Product Name" required>
+            <textarea name="description" placeholder="Product Description" required></textarea>
+            <input type="number" name="price" placeholder="Product Price" required>
+            
+            <!-- Category Selection -->
+            <select name="category" required>
+                <option value="">Select Category</option>
+                <option value="Old School">Old School</option>
+                <option value="Street Wear">Street Wear</option>
+                <option value="Casual Fit">Casual Fit</option>
+            </select>
+            <input type="number" placeholder="Stock" name="stock" id="stock" min="0" required>
+
+
+            <input type="file" name="image" accept="image/*" required>
+            <button type="submit">Create Product</button>
+        </form>
     </div>
-    <!-- Add this inside the <body> -->
+</div>
+
 <!-- Edit Product Modal -->
 <div id="editProductModal" class="modal">
     <div class="modal-content">
@@ -223,6 +255,15 @@ $conn->close();
             <input type="text" id="edit-product-name" placeholder="Product Name" required>
             <textarea id="edit-product-description" placeholder="Product Description" required></textarea>
             <input type="number" id="edit-product-price" placeholder="Product Price" required>
+            <select name="category" required>
+                <option value="">Select Category</option>
+                <option value="Old School">Old School</option>
+                <option value="Street Wear">Street Wear</option>
+                <option value="Casual Fit">Casual Fit</option>
+            </select>
+            <input type="number" placeholder= "Stock" name="stock" id="stock" min="0" required>
+
+
             <input type="file" id="edit-product-image">
             <img id="edit-product-image-preview" src="" width="100" style="display:none;">
             <button type="submit">Update Product</button>
@@ -243,8 +284,6 @@ $conn->close();
             <button onclick="sendMessage()">Send</button>
         </div>
     </div>
-</body>
-</html>
 
     <script>
         function toggleMenu() {
@@ -343,14 +382,14 @@ function addProductToTable(product) {
         <td>${product.name}</td>
         <td>${product.description}</td>
         <td>$${parseFloat(product.price).toFixed(2)}</td>
+        <td>${product.category ? product.category : 'N/A'}</td> <!-- Display category -->
+        <td>${product.stock}</td> <!-- Add stock column -->
         <td>
+            <button onclick="editProduct(${product.id})">✏️ Edit</button>
             <button onclick="deleteProduct(${product.id})">🗑 Delete</button>
         </td>
     `;
     tableBody.insertBefore(newRow, tableBody.firstChild); // Add at the top
-}
-function toggleNotifications() {
-    document.getElementById('notification-dropdown').classList.toggle('show');
 }
 
 function fetchNotifications() {

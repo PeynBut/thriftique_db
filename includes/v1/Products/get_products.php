@@ -30,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     if (isset($_GET['id'])) {
         // Fetch a single product by ID
         $productId = $_GET['id'];
-        $stmt = $conn->prepare("SELECT id, name, description, price, image, stock FROM products WHERE id = ?");
+        $stmt = $conn->prepare("SELECT id, name, description, price, image, stock, category FROM products WHERE id = ?");
         $stmt->bind_param("i", $productId);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -41,11 +41,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         } else {
             echo json_encode(["error" => true, "message" => "Product not found"]);
         }
-        
     } else {
-        // Fetch all products
-        $query = "SELECT id, name, description, price, image, stock FROM products";
-        $result = $conn->query($query);
+        // Fetch all products or filter by category
+        $category = isset($_GET['category']) ? $_GET['category'] : "";
+
+        if (!empty($category) && $category !== "All") {
+            // Fetch products filtered by category
+            $stmt = $conn->prepare("SELECT id, name, description, price, image, stock, category FROM products WHERE category = ?");
+            $stmt->bind_param("s", $category);
+        } else {
+            // Fetch all products
+            $stmt = $conn->prepare("SELECT id, name, description, price, image, stock, category FROM products");
+        }
+
+        $stmt->execute();
+        $result = $stmt->get_result();
         $products = [];
 
         while ($row = $result->fetch_assoc()) {
