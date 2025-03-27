@@ -230,7 +230,7 @@ $conn->close();
             <input type="number" name="price" placeholder="Product Price" required>
             
             <!-- Category Selection -->
-            <select name="category" required>
+            <select name="category">
                 <option value="">Select Category</option>
                 <option value="Old School">Old School</option>
                 <option value="Street Wear">Street Wear</option>

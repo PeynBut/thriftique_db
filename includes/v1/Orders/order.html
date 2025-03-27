@@ -120,13 +120,15 @@ async function logoutUser() {
 async function fetchOrders() {
     try {
         const response = await fetch("http://localhost/thriftique_db/includes/v1/Orders/order.php");
-        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-
         const data = await response.json();
-        console.log(data);  // Log the response to inspect the data
+        console.log("Fetched Orders:", data);
+
+        if (data.error) {
+            console.error("Error:", data.message);
+            return;
+        }
 
         const tableBody = document.querySelector("#ordersTable tbody");
-
         tableBody.innerHTML = data.orders.map(order => `
             <tr>
                 <td>${order.user_name || "Unknown"}</td>

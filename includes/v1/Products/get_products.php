@@ -25,7 +25,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
-// Fetch product details
+// Define base URL for images
+$base_url = "http://192.168.100.184/thriftique_db/includes/v1/Products/uploads/";
+
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     if (isset($_GET['id'])) {
         // Fetch a single product by ID
@@ -37,6 +39,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         $product = $result->fetch_assoc();
 
         if ($product) {
+            // ✅ Ensure full image URL
+            if (!empty($product['image']) && !filter_var($product['image'], FILTER_VALIDATE_URL)) {
+                $product['image'] = $base_url . basename($product['image']);
+            }
             echo json_encode(["success" => true, "product" => $product]);
         } else {
             echo json_encode(["error" => true, "message" => "Product not found"]);
@@ -46,11 +52,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         $category = isset($_GET['category']) ? $_GET['category'] : "";
 
         if (!empty($category) && $category !== "All") {
-            // Fetch products filtered by category
             $stmt = $conn->prepare("SELECT id, name, description, price, image, stock, category FROM products WHERE category = ?");
             $stmt->bind_param("s", $category);
         } else {
-            // Fetch all products
             $stmt = $conn->prepare("SELECT id, name, description, price, image, stock, category FROM products");
         }
 
@@ -59,6 +63,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         $products = [];
 
         while ($row = $result->fetch_assoc()) {
+            // ✅ Ensure full image URL
+            if (!empty($row['image']) && !filter_var($row['image'], FILTER_VALIDATE_URL)) {
+                $row['image'] = $base_url . basename($row['image']);
+            }
             $products[] = $row;
         }
 
