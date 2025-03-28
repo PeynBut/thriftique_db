@@ -166,7 +166,6 @@ $conn->close();
     <a href="http://localhost/thriftique_db/includes/v1//admin/dashboard.html">🏠 Dashboard</a>
     <a href="http://localhost/thriftique_db/includes/v1/Products/products.php">📦 Products</a>
     <a href="http://localhost/thriftique_db/includes/v1/Orders/Order.html">📦 Orders</a>
-    <a href="http://localhost/thriftique_db/includes/v1/Categories/Categories.php">📂 Categories</a>
     <a href="#" onclick="openChat()">💬 Messages</a>
 </div>>
     <div class="content" id="content">

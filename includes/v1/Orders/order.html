@@ -40,7 +40,6 @@
     <a href="http://localhost/thriftique_db/includes/v1//admin/dashboard.html">🏠 Dashboard</a>
     <a href="http://localhost/thriftique_db/includes/v1/Products/products.php">📦 Products</a>
     <a href="http://localhost/thriftique_db/includes/v1/Orders/Order.html">📦 Orders</a>
-    <a href="http://localhost/thriftique_db/includes/v1/Categories/Categories.php">📂 Categories</a>
     <a href="#" onclick="openChat()">💬 Messages</a>
 </div>>
 
@@ -149,44 +148,62 @@ async function fetchOrders() {
 
 
 // Update Order
-async function updateOrder(orderId) {
-    const newStatus = prompt("Enter new status: Placed, Preparing, Ready, Completed");
-
-    if (!newStatus) {
-        alert("Invalid status entered!");
-        return;
-    }
-
-    // Normalize input (case-insensitive)
-    const formattedStatus = newStatus.trim().toLowerCase();
-
-    // Valid statuses with correct formatting
-    const validStatuses = {
-        "placed": "Placed",
-        "preparing": "Preparing",
-        "ready": "Ready",
-        "completed": "Completed"
-    };
-
-    if (!validStatuses[formattedStatus]) {
-        alert("Invalid status entered!");
-        return;
-    }
+// Update Order with Dropdown
+async function updateOrder(orderId, newStatus) {
+    if (!newStatus) return;
 
     try {
         const response = await fetch("http://localhost/thriftique_db/includes/v1/Orders/order.php", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ action: OrderActions.UPDATE, id: orderId, status: validStatuses[formattedStatus] }) // Send correctly formatted status
+            body: JSON.stringify({ action: OrderActions.UPDATE, id: orderId, status: newStatus })
         });
 
         const data = await response.json();
         alert(data.message);
-        fetchOrders();  // Refresh the orders table
+        fetchOrders();  // Refresh orders table
     } catch (error) {
         console.error("Error updating order:", error);
     }
 }
+
+// Fetch Orders with Dropdown for Status
+async function fetchOrders() {
+    try {
+        const response = await fetch("http://localhost/thriftique_db/includes/v1/Orders/order.php");
+        const data = await response.json();
+        console.log("Fetched Orders:", data);
+
+        if (data.error) {
+            console.error("Error:", data.message);
+            return;
+        }
+
+        const tableBody = document.querySelector("#ordersTable tbody");
+        tableBody.innerHTML = data.orders.map(order => `
+            <tr>
+                <td>${order.user_name || "Unknown"}</td>
+                <td>${order.product_name || "N/A"}</td>
+                <td>${order.quantity || 0}</td>
+                <td>${order.total_price}</td>
+                <td>
+                    <select onchange="updateOrder(${order.id}, this.value)">
+                        <option value="Placed" ${order.status === "Placed" ? "selected" : ""}>Place Order</option>
+                        <option value="Preparing" ${order.status === "Preparing" ? "selected" : ""}>Preparing</option>
+                        <option value="Ready" ${order.status === "Ready" ? "selected" : ""}>Ready</option>
+                        <option value="Completed" ${order.status === "Completed" ? "selected" : ""}>Completed</option>
+                    </select>
+                </td>
+                <td>
+                    <button onclick="deleteOrder(${order.id})">🗑 Delete</button>
+                </td>
+            </tr>
+        `).join("");
+    } catch (error) {
+        console.error("Error fetching orders:", error);
+    }
+}
+
 
 
 
