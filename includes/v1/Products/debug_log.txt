@@ -1,0 +1,288 @@
+Received POST Data: Array
+(
+)
+
+Received FILES Data: Array
+(
+)
+
+Received POST Data: Array
+(
+    [id] => 50
+    [name] => T-shrit
+    [description] => asdas
+    [price] => 100.00
+    [stock] => 1
+)
+
+Received FILES Data: Array
+(
+    [image] => Array
+        (
+            [name] => me.jpg
+            [full_path] => me.jpg
+            [type] => image/jpeg
+            [tmp_name] => C:\xampp2\tmp\php2E0E.tmp
+            [error] => 0
+            [size] => 173670
+        )
+
+)
+
+Received POST Data: Array
+(
+    [id] => 50
+    [name] => T-shrit
+    [description] => asdas
+    [price] => 100.00
+    [stock] => 1
+)
+
+Received FILES Data: Array
+(
+    [image] => Array
+        (
+            [name] => me.jpg
+            [full_path] => me.jpg
+            [type] => image/jpeg
+            [tmp_name] => C:\xampp2\tmp\php4214.tmp
+            [error] => 0
+            [size] => 173670
+        )
+
+)
+
+Received POST Data: Array
+(
+    [id] => 50
+    [name] => T-shrit
+    [description] => asdas
+    [price] => 100.00
+    [stock] => 1
+)
+
+Received FILES Data: Array
+(
+    [image] => Array
+        (
+            [name] => me.jpg
+            [full_path] => me.jpg
+            [type] => image/jpeg
+            [tmp_name] => C:\xampp2\tmp\php5724.tmp
+            [error] => 0
+            [size] => 173670
+        )
+
+)
+
+Received POST Data: Array
+(
+    [id] => 50
+    [name] => T-shrit
+    [description] => asdas
+    [price] => 100.00
+    [stock] => 1
+)
+
+Received FILES Data: Array
+(
+    [image] => Array
+        (
+            [name] => me.jpg
+            [full_path] => me.jpg
+            [type] => image/jpeg
+            [tmp_name] => C:\xampp2\tmp\php8833.tmp
+            [error] => 0
+            [size] => 173670
+        )
+
+)
+
+Received POST Data: Array
+(
+    [id] => 50
+    [name] => T-shrit
+    [description] => asdas
+    [price] => 100.00
+    [stock] => 1
+)
+
+Received FILES Data: Array
+(
+    [image] => Array
+        (
+            [name] => me.jpg
+            [full_path] => me.jpg
+            [type] => image/jpeg
+            [tmp_name] => C:\xampp2\tmp\php324F.tmp
+            [error] => 0
+            [size] => 173670
+        )
+
+)
+
+Received POST Data: Array
+(
+    [action] => update
+    [id] => 50
+    [name] => T-shrit
+    [description] => asdas
+    [price] => 100.00
+    [stock] => 2
+)
+
+Received FILES Data: Array
+(
+    [image] => Array
+        (
+            [name] => me.jpg
+            [full_path] => me.jpg
+            [type] => image/jpeg
+            [tmp_name] => C:\xampp2\tmp\phpCED4.tmp
+            [error] => 0
+            [size] => 173670
+        )
+
+)
+
+Received POST Data: Array
+(
+    [action] => update
+    [id] => 50
+    [name] => T-shrit
+    [description] => asdas
+    [price] => 100.00
+    [stock] => 1
+    [category] => Street Wear
+)
+
+Received FILES Data: Array
+(
+    [image] => Array
+        (
+            [name] => me.jpg
+            [full_path] => me.jpg
+            [type] => image/jpeg
+            [tmp_name] => C:\xampp2\tmp\phpD931.tmp
+            [error] => 0
+            [size] => 173670
+        )
+
+)
+
+Image uploaded to: uploads/67e784aea6ddf.jpg
+Received POST Data: Array
+(
+    [action] => update
+    [id] => 50
+    [name] => T-shrit
+    [description] => hello
+    [price] => 100.00
+    [stock] => 1
+    [category] => Street Wear
+)
+
+Received FILES Data: Array
+(
+    [image] => Array
+        (
+            [name] => Casual_fit.jpg
+            [full_path] => Casual_fit.jpg
+            [type] => image/jpeg
+            [tmp_name] => C:\xampp2\tmp\php32BC.tmp
+            [error] => 0
+            [size] => 37418
+        )
+
+)
+
+Image uploaded to: uploads/67e784c592ed9.jpg
+Received POST Data: Array
+(
+    [action] => update
+    [id] => 50
+    [name] => T-shrit
+    [description] => hello
+    [price] => 100.00
+    [stock] => 1
+    [category] => Street Wear
+)
+
+Received FILES Data: Array
+(
+)
+
+Received POST Data: Array
+(
+    [action] => update
+    [id] => 50
+    [name] => T-shrit
+    [description] => hello
+    [price] => 100.00
+    [stock] => 10
+    [category] => 
+)
+
+Received FILES Data: Array
+(
+)
+
+Received POST Data: Array
+(
+    [action] => update
+    [id] => 50
+    [name] => T-shrit
+    [description] => hello
+    [price] => 100.00
+    [stock] => 10
+    [category] => 
+)
+
+Received FILES Data: Array
+(
+)
+
+Received POST Data: Array
+(
+    [action] => update
+    [id] => 50
+    [name] => T-shrit
+    [description] => hello
+    [price] => 100.00
+    [stock] => 10
+)
+
+Received FILES Data: Array
+(
+)
+
+Received POST Data: Array
+(
+    [action] => update
+    [id] => 50
+    [name] => T-shrit
+    [description] => hello
+    [price] => 100.00
+    [stock] => 1
+    [category] => Street Wear
+)
+
+Received FILES Data: Array
+(
+)
+
+Received POST Data: Array
+(
+    [action] => update
+    [id] => 50
+    [name] => T-shrit
+    [description] => hello
+    [price] => 100.00
+    [stock] => 5
+    [category] => Street Wear
+)
+
+Received FILES Data: Array
+(
+)
+

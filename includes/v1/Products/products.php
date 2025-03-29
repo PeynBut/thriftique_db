@@ -194,7 +194,7 @@ $conn->close();
                                 <td><img src="<?= htmlspecialchars($product['image']) ?>" width="50"></td>
                                 <td><?= htmlspecialchars($product['name']) ?></td>
                                 <td><?= htmlspecialchars($product['description']) ?></td>
-                                <td>$<?= number_format($product['price'], 2) ?></td>
+                                <td>₱<?= number_format($product['price'], 2) ?></td>
                                 <td><?= htmlspecialchars($product['category']) ?></td> <!-- Display Category -->
                                 <td><?= $product['stock'] ?></td> <!-- Display Stock -->
                                 <td>
@@ -251,24 +251,32 @@ $conn->close();
         <h2>Edit Product</h2>
         <form id="edit-product-form">
             <input type="hidden" id="edit-product-id">
+
             <input type="text" id="edit-product-name" placeholder="Product Name" required>
+
             <textarea id="edit-product-description" placeholder="Product Description" required></textarea>
+
             <input type="number" id="edit-product-price" placeholder="Product Price" required>
-            <select name="category" required>
+
+            <!-- ✅ Fixed: Added id="edit-product-category" -->
+            <select id="edit-product-category" name="category">
                 <option value="">Select Category</option>
                 <option value="Old School">Old School</option>
                 <option value="Street Wear">Street Wear</option>
                 <option value="Casual Fit">Casual Fit</option>
             </select>
-            <input type="number" placeholder= "Stock" name="stock" id="stock" min="0" required>
 
+            <!-- ✅ Fixed: Changed id="stock" to id="edit-product-stock" -->
+            <input type="number" placeholder="Stock" id="edit-product-stock" min="0" required>
 
             <input type="file" id="edit-product-image">
             <img id="edit-product-image-preview" src="" width="100" style="display:none;">
+            
             <button type="submit">Update Product</button>
         </form>
     </div>
 </div>
+
 
 
       <!-- Chat Section (Hidden Initially) -->
@@ -285,6 +293,7 @@ $conn->close();
     </div>
 
     <script>
+
         function toggleMenu() {
             document.getElementById('sidebar').classList.toggle('active');
             document.getElementById('content').classList.toggle('shift');
@@ -333,20 +342,85 @@ $conn->close();
     function closeProductModal() {
         document.getElementById("productModal").style.display = "none";
     }
+    function updateProduct(productId) {
+    let formData = new FormData();
+    formData.append("action", "update");
+    formData.append("id", productId);
+    formData.append("name", document.getElementById("edit-product-name").value.trim());
+    formData.append("description", document.getElementById("edit-product-description").value.trim());
+    formData.append("price", document.getElementById("edit-product-price").value);
+    formData.append("stock", document.getElementById("edit-product-stock").value); // ✅ Correct ID for stock
+    formData.append("category", document.querySelector("select[name='category']").value); // ✅ Ensure category is included
+
+    const imageInput = document.getElementById("edit-product-image");
+    if (imageInput.files.length > 0) {
+        formData.append("image", imageInput.files[0]);
+    }
+
+    // Debugging: Log FormData before sending
+    console.log("🔵 Form Data being sent:");
+    for (let pair of formData.entries()) {
+        console.log(`${pair[0]}: ${pair[1]}`);
+    }
+
+    fetch("http://localhost/thriftique_db/includes/v1/products/update_product.php", {
+        method: "POST",
+        body: formData
+    })
+    .then(response => response.text()) // Get raw response first
+    .then(text => {
+        console.log("🔴 Raw Response:", text);
+        try {
+            return JSON.parse(text);
+        } catch (error) {
+            throw new Error("JSON Parse Error: " + error.message + "\nRaw Response: " + text);
+        }
+    })
+    .then(data => {
+        console.log("✅ Server Response:", data);
+        if (data.success) {
+            alert("✅ Product updated successfully!");
+            location.reload();
+        } else {
+            alert("❌ Error: " + data.message);
+        }
+    })
+    .catch(error => console.error("🚨 Fetch Error:", error));
+}
+
+// Attach event listener to the form
+document.getElementById("edit-product-form").addEventListener("submit", function (event) {
+    event.preventDefault();
+    updateProduct(document.getElementById("edit-product-id").value);
+});
+
+
+
+
+
 
     function editProduct(productId) {
-        fetch(`http://localhost/thriftique_db/includes/v1/products/get_products.php?id=${productId}`)
+    fetch(`http://localhost/thriftique_db/includes/v1/products/get_products.php?id=${productId}`)
         .then(response => response.json())
-        .then(product => {
-            if (!product || product.error) {
-                console.error("Invalid product data received:", product);
+        .then(data => {
+            if (!data || data.error) {
+                console.error("Invalid product data received:", data);
                 return;
             }
+
+            // Check if the response is nested or not
+            const product = data.product ? data.product : data;
+
             document.getElementById("edit-product-id").value = product.id;
             document.getElementById("edit-product-name").value = product.name;
             document.getElementById("edit-product-description").value = product.description;
             document.getElementById("edit-product-price").value = product.price;
+            document.getElementById("stock").value = product.stock; // Use correct stock field ID
+            
+            // Set selected category
+            document.querySelector(`select[name="category"]`).value = product.category;
 
+            // Handle image preview
             if (product.image) {
                 document.getElementById("edit-product-image-preview").src = product.image;
                 document.getElementById("edit-product-image-preview").style.display = "block";
@@ -354,18 +428,20 @@ $conn->close();
                 document.getElementById("edit-product-image-preview").style.display = "none";
             }
 
+            // Show the modal
             document.getElementById("editProductModal").style.display = "block";
         })
         .catch(error => console.error("Error fetching product:", error));
 
-        window.onclick = function(event) {
-    let modal = document.getElementById("editProductModal");
-    if (event.target === modal) {
-        closeEditProductModal();
-    }
-};
-
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+        let modal = document.getElementById("editProductModal");
+        if (event.target === modal) {
+            closeEditProductModal();
+        }
+    };
 }
+
 function closeEditProductModal() {
     document.getElementById("editProductModal").style.display = "none";
 }
