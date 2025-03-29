@@ -37,11 +37,10 @@
         <div class="user-dropdown" id="userDropdown">
             <a href="http://localhost/thriftique_db/includes/v1/admin/settings.html">⚙️ Settings</a>
             <a href="http://localhost/thriftique_db/includes/v1/admin/settings.html">🔒 Change Password</a>
-             <a href="http://localhost/thriftique_db/includes/v1/admin/logout.php" onclick="logoutUser()">🚪 Logout</a>
+             <a href="http://localhost/thriftique_db/includes/v1/admin/logout.php" onclick="logoutUser(event)">🚪 Logout</a>
         </div>
     </div> 
   </div>
-</div>
 
   <!-- Sidebar Navigation -->
   <div class="sidebar" id="sidebar">
@@ -49,7 +48,7 @@
     <a href="http://localhost/thriftique_db/includes/v1/Products/products.php">📦 Products</a>
     <a href="http://localhost/thriftique_db/includes/v1/Orders/order.html">📦 Orders</a>
     <a href="#" onclick="openChat()">💬 Messages</a>
-</div>
+  </div>
 
   <!-- Dashboard Content -->
   <div class="content" id="content">
@@ -62,13 +61,12 @@
       <!-- Analytics Section -->
       <h2>Analytics Overview</h2>
       <div class="analytics-container">
-          <!-- Analytics Cards -->
           <div class="analytics-overview">
               <div class="card"><h3>Total Sales</h3><p>₱10,450</p></div>
               <div class="card"><h3>Orders This Month</h3><p>1,250</p></div>
           </div>
       </div>
-      
+
       <!-- Side-by-Side Charts -->
       <div class="chart-wrapper">
           <div class="chart-container">
@@ -81,7 +79,7 @@
           </div>
       </div>
 
-      <!-- Chat Section (Hidden Initially) -->
+      <!-- Chat Section -->
       <div id="chat-section" class="chat-box">
         <div class="chat-header">
             <h3>Live Chat</h3>
@@ -93,135 +91,88 @@
             <button onclick="sendMessage()">Send</button>
         </div>
     </div>
-      
 
   <script>
-      function toggleMenu() {
-          document.getElementById('sidebar').classList.toggle('active');
-          document.getElementById('content').classList.toggle('shift');
-      }
-
-      document.addEventListener("DOMContentLoaded", async function () {
+    document.addEventListener("DOMContentLoaded", async function () {
         try {
-            const response = await fetch("http://localhost/thriftique_db/includes/v1/analytic/analytics.php");  
-            const data = await response.json();
-
-            if (!data || data.length === 0) {
+            const analyticsResponse = await fetch("http://localhost/thriftique_db/includes/v1/analytic/analytics.php");
+            const analyticsData = await analyticsResponse.json();
+        
+            // Log the fetched analyticsData to check its structure
+            console.log("Fetched Analytics Data:", analyticsData);
+        
+            if (analyticsData && analyticsData.length > 0) {
+                // Use the 'date' field for labels
+                const labels = analyticsData.map(row => row.date);
+                const salesData = analyticsData.map(row => row.sales);
+                const ordersData = analyticsData.map(row => row.orders);
+        
+                console.log("Labels:", labels);  // Log labels
+                console.log("Sales Data:", salesData);  // Log sales data
+                console.log("Orders Data:", ordersData);  // Log orders data
+        
+                updateCards(analyticsData);
+                createChart("salesChart", "Sales (₱)", labels, salesData, "#007bff");
+                createChart("ordersChart", "Orders", labels, ordersData, "#28a745");
+            } else {
                 console.warn("No analytics data available");
-                return;
             }
-
-            const labels = data.map(row => row.month);
-            const salesData = data.map(row => row.sales);
-            const ordersData = data.map(row => row.orders);
-
-            updateCards(data);
-            createChart("salesChart", "Sales (₱)", labels, salesData, "#007bff");
-            createChart("ordersChart", "Orders", labels, ordersData, "#28a745");
-            
+        
+            // Additional logic for user data...
         } catch (error) {
             console.error("Error fetching data:", error);
         }
     });
-
+    
+    
     function createChart(elementId, label, labels, data, color) {
-        // Get today's date
-        const today = new Date();
-        const futureDate = new Date(today);
-        futureDate.setDate(today.getDate() + 1); // Future date
-    
-        // Format dates as YYYY-MM-DD in local timezone
-        const formatDate = (date) => {
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-based
-            const day = String(date.getDate()).padStart(2, '0');
-            return `${year}-${month}-${day}`;
-        };
-    
-        // Ensure the recent date (today) is included in the labels
-        const recentDate = formatDate(today);
-        if (!labels.includes(recentDate)) {
-            labels.push(recentDate); // Add the recent date to labels
-            data.push(null); // Add a corresponding null value for the recent date
+        if (!labels || labels.length === 0 || !data || data.length === 0) {
+            console.error("Invalid data or labels for the chart.");
+            return;
         }
     
-        // Update labels and data arrays
-        labels = [...labels, formatDate(futureDate)]; // Include future date
-        data = [...data, null]; // Add a corresponding null value for the future date
-    
-        // Get the canvas element and set its dimensions for landscape
-        const canvas = document.getElementById(elementId);
-        canvas.width = 800; // Set width for landscape
-        canvas.height = 400; // Set height for landscape
-    
-        new Chart(canvas.getContext("2d"), {
+        new Chart(document.getElementById(elementId).getContext("2d"), {
             type: "bar",
             data: {
-                labels: labels, // Updated labels with recent date and future date
+                labels: labels,
                 datasets: [{
                     label: label,
                     data: data,
                     backgroundColor: color,
                     borderWidth: 1,
-                    barThickness: 20, // Adjust this value to make bars smaller or larger
+                    barThickness: 20
                 }]
             },
             options: {
                 responsive: true,
-                maintainAspectRatio: false, // Disable default aspect ratio
-                aspectRatio: 2, // Adjust this value to control the landscape ratio (width/height)
+                maintainAspectRatio: false,
                 scales: {
-                    y: { 
-                        beginAtZero: true 
-                    },
-                    x: {
-                        ticks: {
-                            autoSkip: false, // Ensure all labels (dates) are shown
-                            maxRotation: 0, // Prevent rotation (keep labels horizontal)
-                            callback: function (value) {
-                                // Ensure the date is displayed as a single line
-                                return labels[value];
-                            }
-                        }
-                    }
+                    y: { beginAtZero: true },
+                    x: { ticks: { autoSkip: false } }
                 }
             }
         });
     }
+    
+
     function updateCards(data) {
         if (data.length > 0) {
             document.querySelectorAll(".analytics-overview .card p")[0].textContent = `₱${data.reduce((acc, row) => acc + parseFloat(row.sales), 0).toLocaleString()}`;
             document.querySelectorAll(".analytics-overview .card p")[1].textContent = data.reduce((acc, row) => acc + parseInt(row.orders), 0);
         }
     }
+
     function toggleUserMenu() {
         document.getElementById("userDropdown").classList.toggle("active");
     }
-    
-    // Close dropdown when clicking outside
-    document.addEventListener("click", function (event) {
-        const dropdown = document.getElementById("userDropdown");
-        if (!event.target.closest(".user-menu")) {
-            dropdown.classList.remove("active");
-        }
-    });
-    document.addEventListener("DOMContentLoaded", async function () {
-        try {
-            const response = await fetch("http://localhost/thriftique_db/includes/v1/admin/get_user.php");
-            const data = await response.json();
-    
-            if (data.first_name) {
-                document.getElementById("username").textContent = `${data.first_name} ${data.last_name}`;
-            } else {
-                console.warn("User not found or not logged in");
-            }
-        } catch (error) {
-            console.error("Error fetching user data:", error);
-        }
-    });
+
+    function toggleNotifications() {
+        document.getElementById("notifications").classList.toggle("active");
+    }
+
     function logoutUser(event) {
         event.preventDefault(); // Prevent default link behavior
-    
+
         const confirmLogout = confirm("Are you sure you want to log out?");
         if (confirmLogout) {
             fetch("http://localhost/thriftique_db/includes/v1/admin/logout.php", {
@@ -238,56 +189,7 @@
             .catch(error => console.error("Error logging out user:", error));
         }
     }
-    
-    // Attach the function to the logout link
-    document.querySelector(".user-dropdown a[href*='logout.php']").addEventListener("click", logoutUser);
-    function toggleNotifications() {
-        document.getElementById("notifications").classList.toggle("active");
-    }    
-    document.addEventListener("DOMContentLoaded", async function () {
-        try {
-            const response = await fetch("http://localhost/thriftique_db/includes/v1/admin/get_android_user.php");
-            const data = await response.json();
-    
-            if (!data.error) {
-                // Loop through cards and find the one with 'Users'
-                document.querySelectorAll(".card h3").forEach((h3) => {
-                    if (h3.innerText.includes("Users")) {
-                        let userCountElement = h3.nextElementSibling; // Select the <p> next to <h3>
-                        if (userCountElement) {
-                            userCountElement.textContent = data.user_count; // Update the user count
-                        }
-                    }
-                });
-            } else {
-                console.warn("Failed to fetch user count:", data.message);
-            }
-        } catch (error) {
-            console.error("Error fetching user count:", error);
-        }
-    });
-    
-    document.addEventListener("DOMContentLoaded", async function () {
-        try {
-            const response = await fetch("http://localhost/thriftique_db/includes/v1/Products/get_product_count.php");
-            const data = await response.json();
-    
-            if (!data.error) {
-                document.querySelectorAll(".card h3").forEach((h3) => {
-                    if (h3.innerText.includes("Products")) {
-                        let productCountElement = h3.nextElementSibling; // Select the <p> next to <h3>
-                        if (productCountElement) {
-                            productCountElement.textContent = data.product_count; // Update the product count
-                        }
-                    }
-                });
-            } else {
-                console.warn("Failed to fetch product count");
-            }
-        } catch (error) {
-            console.error("Error fetching product count:", error);
-        }
-    });
+
     function openChat() {
         document.getElementById('chat-section').style.display = "block";
     }
@@ -298,70 +200,52 @@
 
     // WebSocket Connection
     let ws;
+    function connectWebSocket() {
+        ws = new WebSocket("ws://localhost:8080");
 
-function connectWebSocket() {
-ws = new WebSocket("ws://localhost:8080");
+        ws.onopen = function () {
+            console.log("Connected to WebSocket");
+        };
 
-ws.onopen = function () {
-    console.log("Connected to WebSocket");
-};
+        ws.onmessage = function (event) {
+            const chatMessages = document.getElementById("chat-messages");
+            const data = JSON.parse(event.data);
+            const message = document.createElement("div");
+            message.classList.add("message");
+            message.textContent = `${data.sender}: ${data.message}`;
+            chatMessages.appendChild(message);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        };
 
-ws.onmessage = function (event) {
-    console.log("WebSocket message received:", event.data);
+        ws.onclose = function () {
+            console.warn("WebSocket closed. Reconnecting in 3 seconds...");
+            setTimeout(connectWebSocket, 3000); // Reconnect after 3s
+        };
 
-    const chatMessages = document.getElementById("chat-messages");
-    if (!chatMessages) {
-        console.error("Chat messages container not found!");
-        return;
+        ws.onerror = function (error) {
+            console.error("WebSocket error:", error);
+            ws.close();
+        };
     }
 
-    const data = JSON.parse(event.data);
-    if (!data.message) {
-        console.error("Invalid message format received:", data);
-        return;
+    // Start WebSocket connection
+    connectWebSocket();
+
+    function sendMessage() {
+        const input = document.getElementById("chatMessage");
+        const message = input.value.trim();
+        if (!message) {
+            console.warn("Cannot send an empty message.");
+            return;
+        }
+
+        if (ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({ sender: "Admin", message: message }));
+            input.value = ''; // Clear input after sending message
+        } else {
+            console.warn("WebSocket is not open.");
+        }
     }
-
-    const message = document.createElement("div");
-    message.classList.add("message");
-    message.textContent = `${data.sender}: ${data.message}`;
-
-    chatMessages.appendChild(message);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-};
-
-ws.onclose = function () {
-    console.warn("WebSocket closed. Reconnecting in 3 seconds...");
-    setTimeout(connectWebSocket, 3000); // Reconnect after 3s
-};
-
-ws.onerror = function (error) {
-    console.error("WebSocket error:", error);
-    ws.close();
-};
-}
-
-// Start WebSocket connection
-connectWebSocket();
-
-function sendMessage() {
-const input = document.getElementById("chatMessage");
-const message = input.value.trim();
-
-if (!message) {
-    console.warn("Cannot send an empty message.");
-    return;
-}
-
-if (ws.readyState === WebSocket.OPEN) {
-    ws.send(JSON.stringify({ sender: "Admin", receiver: "User", message: message }));
-    input.value = "";
-} else {
-    console.error("WebSocket is not open. Cannot send message.");
-}
-}
-    
-    
   </script>
-
 </body>
 </html>
