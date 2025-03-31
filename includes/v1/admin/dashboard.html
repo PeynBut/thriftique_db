@@ -93,6 +93,11 @@
     </div>
 
   <script>
+
+    function toggleMenu() {
+        document.getElementById('sidebar').classList.toggle('active');
+        document.getElementById('content').classList.toggle('shift');
+    }
     document.addEventListener("DOMContentLoaded", async function () {
         try {
             const analyticsResponse = await fetch("http://localhost/thriftique_db/includes/v1/analytic/analytics.php");
