@@ -286,3 +286,33 @@ Received FILES Data: Array
 (
 )
 
+Received POST Data: Array
+(
+    [action] => update
+    [id] => 42
+    [name] => looking for formal attire
+    [description] => looking brand new
+    [price] => 500.00
+    [stock] => 10
+    [category] => Old School
+)
+
+Received FILES Data: Array
+(
+)
+
+Received POST Data: Array
+(
+    [action] => update
+    [id] => 42
+    [name] => looking for formal attire
+    [description] => looking brand new
+    [price] => 500.00
+    [stock] => 1
+    [category] => Old School
+)
+
+Received FILES Data: Array
+(
+)
+

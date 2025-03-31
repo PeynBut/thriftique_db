@@ -129,6 +129,7 @@ $conn->close();
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="product.css">
     <link rel="stylesheet" href="../Chat/chat.css"> 
+    <link rel="stylesheet" href="modal.css">
 </head>
 <body>
 <div class="top-bar">
@@ -217,65 +218,65 @@ $conn->close();
     <!-- Floating Action Button -->
     <div class="fab" onclick="openProductModal()">+</div>
 
-  <!-- Modal for Product Creation -->
-<div id="productModal" class="modal">
-    <div class="modal-content">
-        <span class="close" onclick="closeProductModal()">&times;</span>
-        <h2>Create New Product</h2>
-        <form id="product-form" action="products.php" method="POST" enctype="multipart/form-data">
-            <input type="hidden" name="action" value="create">
-            <input type="text" name="name" placeholder="Product Name" required>
-            <textarea name="description" placeholder="Product Description" required></textarea>
-            <input type="number" name="price" placeholder="Product Price" required>
-            
-            <!-- Category Selection -->
-            <select name="category">
-                <option value="">Select Category</option>
-                <option value="Old School">Old School</option>
-                <option value="Street Wear">Street Wear</option>
-                <option value="Casual Fit">Casual Fit</option>
-            </select>
-            <input type="number" placeholder="Stock" name="stock" id="stock" min="0" required>
+    <!-- Modal for Product Creation -->
+    <div id="productModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeProductModal()">&times;</span>
+            <h2>Create New Product</h2>
+            <form id="product-form" action="products.php" method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="action" value="create">
+                <input type="text" name="name" placeholder="Product Name" required>
+                <textarea name="description" placeholder="Product Description" required></textarea>
+                <input type="number" name="price" placeholder="Product Price" required>
+                
+                <!-- Category Selection -->
+                <select name="category">
+                    <option value="">Select Category</option>
+                    <option value="Old School">Old School</option>
+                    <option value="Street Wear">Street Wear</option>
+                    <option value="Casual Fit">Casual Fit</option>
+                </select>
+                <input type="number" placeholder="Stock" name="stock" id="stock" min="0" required>
 
 
-            <input type="file" name="image" accept="image/*" required>
-            <button type="submit">Create Product</button>
-        </form>
+                <input type="file" name="image" accept="image/*" required>
+                <button type="submit">Create Product</button>
+            </form>
+        </div>
     </div>
-</div>
 
-<!-- Edit Product Modal -->
-<div id="editProductModal" class="modal">
-    <div class="modal-content">
-        <span class="close" onclick="closeEditProductModal()">&times;</span>
-        <h2>Edit Product</h2>
-        <form id="edit-product-form">
-            <input type="hidden" id="edit-product-id">
+    <!-- Edit Product Modal -->
+    <div id="editProductModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeEditProductModal()">&times;</span>
+            <h2>Edit Product</h2>
+            <form id="edit-product-form">
+                <input type="hidden" id="edit-product-id">
 
-            <input type="text" id="edit-product-name" placeholder="Product Name" required>
+                <input type="text" id="edit-product-name" placeholder="Product Name" required>
 
-            <textarea id="edit-product-description" placeholder="Product Description" required></textarea>
+                <textarea id="edit-product-description" placeholder="Product Description" required></textarea>
 
-            <input type="number" id="edit-product-price" placeholder="Product Price" required>
+                <input type="number" id="edit-product-price" placeholder="Product Price" required>
 
-            <!-- ✅ Fixed: Added id="edit-product-category" -->
-            <select id="edit-product-category" name="category">
-                <option value="">Select Category</option>
-                <option value="Old School">Old School</option>
-                <option value="Street Wear">Street Wear</option>
-                <option value="Casual Fit">Casual Fit</option>
-            </select>
+                <!-- ✅ Fixed: Added id="edit-product-category" -->
+                <select id="edit-product-category" name="category">
+                    <option value="">Select Category</option>
+                    <option value="Old School">Old School</option>
+                    <option value="Street Wear">Street Wear</option>
+                    <option value="Casual Fit">Casual Fit</option>
+                </select>
 
-            <!-- ✅ Fixed: Changed id="stock" to id="edit-product-stock" -->
-            <input type="number" placeholder="Stock" id="edit-product-stock" min="0" required>
+                <!-- ✅ Fixed: Changed id="stock" to id="edit-product-stock" -->
+                <input type="number" placeholder="Stock" id="edit-product-stock" min="0" required>
 
-            <input type="file" id="edit-product-image">
-            <img id="edit-product-image-preview" src="" width="100" style="display:none;">
-            
-            <button type="submit">Update Product</button>
-        </form>
+                <input type="file" id="edit-product-image">
+                <img id="edit-product-image-preview" src="" width="100" style="display:none;">
+                
+                <button type="submit">Update Product</button>
+            </form>
+        </div>
     </div>
-</div>
 
 
 
@@ -393,6 +394,11 @@ document.getElementById("edit-product-form").addEventListener("submit", function
     event.preventDefault();
     updateProduct(document.getElementById("edit-product-id").value);
 });
+
+function openEditModal() {
+    document.getElementById("editProductModal").style.display = "block";
+    document.getElementById("editProductModal").style.zIndex = "1000";
+}
 
 
 
