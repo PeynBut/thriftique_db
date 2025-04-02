@@ -14,25 +14,26 @@
       <h2 style="margin-left: 20px;">Order Management</h2>
 
       <div class="notification-container" onclick="toggleNotifications(event)">
-          <i class="fas fa-bell notification-bell" aria-label="Notifications"></i>
-          <span class="badge" id="notification-count" style="display: none;">0</span>
-          <div class="notification-dropdown" id="notifications">
-              <h4>Notifications</h4>
-              <ul id="notification-list">
-                  <li>No new notifications</li>
-              </ul>
-          </div>
-      </div>
+        <i class="fas fa-bell notification-bell" aria-label="Notifications"></i>
+        <span class="badge" id="notification-count" style="display: none;">0</span>
+        <div class="notification-dropdown" id="notifications">
+            <h4>Notifications</h4>
+            <ul id="notification-list">
+                <li>No new notifications</li>
+            </ul>
+        </div>
+    </div>
+    
       <div class="user-menu">
           <div class="user-info" onclick="toggleUserMenu(event)">
               <span id="username">Admin</span>
               <i class="fas fa-user-circle"></i>
           </div>
           <div class="user-dropdown" id="userDropdown">
-              <a href="settings.html">⚙️ Settings</a>
-              <a href="change-password.html">🔒 Change Password</a>
-              <a href="logout.php" onclick="logoutUser()">🚪 Logout</a>
-          </div>
+            <a href="http://localhost/thriftique_db/includes/v1/admin/settings.html">⚙️ Settings</a>
+            <a href="http://localhost/thriftique_db/includes/v1/admin/settings.html">🔒 Change Password</a>
+             <a href="http://localhost/thriftique_db/includes/v1/admin/logout.php" onclick="logoutUser(event)">🚪 Logout</a>
+        </div>
       </div>
   </div>
 
@@ -41,7 +42,7 @@
     <a href="http://localhost/thriftique_db/includes/v1/Products/products.php">📦 Products</a>
     <a href="http://localhost/thriftique_db/includes/v1/Orders/Order.html">📦 Orders</a>
     <a href="#" onclick="openChat()">💬 Messages</a>
-</div>>
+  </div>
 
   <div class="content" id="content">
       <h2>Orders</h2>
@@ -73,274 +74,372 @@
       </div>
   </div>
 
-<script>
-  // Enum for Order Actions
-const OrderActions = Object.freeze({
-    CREATE: "create",
-    UPDATE: "update",
-    DELETE: "delete",
-    TRACK: "track"
-});
+  <script>
+    // Enum for Order Actions
+    const OrderActions = Object.freeze({
+        CREATE: "create",
+        UPDATE: "update",
+        DELETE: "delete",
+        TRACK: "track"
+    });
 
-document.addEventListener("DOMContentLoaded", () => {
-    fetchOrders();
-    fetchNotifications();
-    fetchUserDetails();
-    connectWebSocket();
-
-    // Auto-refresh notifications every 5 seconds
-    setInterval(fetchNotifications, 5000);
-});
-
-// Sidebar Toggle
-function toggleMenu() {
-    document.getElementById("sidebar").classList.toggle("active");
-    document.getElementById("content").classList.toggle("shift");
-}
-
-// Logout User
-async function logoutUser() {
-    try {
-        const response = await fetch("http://localhost/thriftique_db/includes/v1/admin/logout.php");
-        const data = await response.json();
-
-        if (data.success) {
-            alert("Logged out successfully!");
-            window.location.href = "http://localhost/thriftique_db/includes/v1/admin/login.php";
-        } else {
-            alert("Logout failed. Please try again.");
-        }
-    } catch (error) {
-        console.error("Error:", error);
-    }
-}
-
-// Fetch Orders
-async function fetchOrders() {
-    try {
-        const response = await fetch("http://localhost/thriftique_db/includes/v1/Orders/order.php");
-        const data = await response.json();
-        console.log("Fetched Orders:", data);
-
-        if (data.error) {
-            console.error("Error:", data.message);
-            return;
-        }
-
-        const tableBody = document.querySelector("#ordersTable tbody");
-        tableBody.innerHTML = data.orders.map(order => `
-            <tr>
-                <td>${order.user_name || "Unknown"}</td>
-                <td>${order.product_name || "N/A"}</td>
-                <td>${order.quantity || 0}</td>
-                <td>${order.total_price}</td>
-                <td>${order.status}</td>
-                <td>
-                    <button onclick="updateOrder(${order.id})">Update</button>
-                    <button onclick="deleteOrder(${order.id})">Delete</button>
-                </td>
-            </tr>
-        `).join("");
-    } catch (error) {
-        console.error("Error fetching orders:", error);
-    }
-}
-
-
-// Update Order
-// Update Order with Dropdown
-async function updateOrder(orderId, newStatus) {
-    if (!newStatus) return;
-
-    try {
-        const response = await fetch("http://localhost/thriftique_db/includes/v1/Orders/order.php", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ action: OrderActions.UPDATE, id: orderId, status: newStatus })
-        });
-
-        const data = await response.json();
-        alert(data.message);
-        fetchOrders();  // Refresh orders table
-    } catch (error) {
-        console.error("Error updating order:", error);
-    }
-}
-
-// Fetch Orders with Dropdown for Status
-async function fetchOrders() {
-    try {
-        const response = await fetch("http://localhost/thriftique_db/includes/v1/Orders/order.php");
-        const data = await response.json();
-        console.log("Fetched Orders:", data);
-
-        if (data.error) {
-            console.error("Error:", data.message);
-            return;
-        }
-
-        const tableBody = document.querySelector("#ordersTable tbody");
-        tableBody.innerHTML = data.orders.map(order => `
-            <tr>
-                <td>${order.user_name || "Unknown"}</td>
-                <td>${order.product_name || "N/A"}</td>
-                <td>${order.quantity || 0}</td>
-                <td>${order.total_price}</td>
-                <td>
-                    <select onchange="updateOrder(${order.id}, this.value)">
-                        <option value="Placed" ${order.status === "Placed" ? "selected" : ""}>Place Order</option>
-                        <option value="Preparing" ${order.status === "Preparing" ? "selected" : ""}>Preparing</option>
-                        <option value="Ready" ${order.status === "Ready" ? "selected" : ""}>Ready</option>
-                        <option value="Completed" ${order.status === "Completed" ? "selected" : ""}>Completed</option>
-                    </select>
-                </td>
-                <td>
-                    <button onclick="deleteOrder(${order.id})">🗑 Delete</button>
-                </td>
-            </tr>
-        `).join("");
-    } catch (error) {
-        console.error("Error fetching orders:", error);
-    }
-}
-
-
-
-
-// Delete Order
-async function deleteOrder(orderId) {
-    if (!confirm("Are you sure you want to delete this order?")) return;
-
-    try {
-        const response = await fetch("http://localhost/thriftique_db/includes/v1/Orders/order.php", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ action: OrderActions.DELETE, id: orderId })
-        });
-
-        const data = await response.json();
-        alert(data.message);
+    document.addEventListener("DOMContentLoaded", () => {
         fetchOrders();
-    } catch (error) {
-        console.error("Error deleting order:", error);
+        fetchNotifications();
+        fetchUserDetails();
+        connectWebSocket();
+
+        // Auto-refresh notifications every 5 seconds
+        setInterval(fetchNotifications, 5000);
+    });
+
+    // Sidebar Toggle
+    function toggleMenu() {
+        document.getElementById("sidebar").classList.toggle("active");
+        document.getElementById("content").classList.toggle("shift");
+    }
+
+    // Logout User
+    async function logoutUser() {
+        try {
+            const response = await fetch("http://localhost/thriftique_db/includes/v1/admin/logout.php");
+            const data = await response.json();
+
+            if (data.success) {
+                alert("Logged out successfully!");
+                window.location.href = "http://localhost/thriftique_db/includes/v1/admin/login.php";
+            } else {
+                alert("Logout failed. Please try again.");
+            }
+        } catch (error) {
+            console.error("Error:", error);
+        }
+    }
+
+    // Fetch Orders
+    async function fetchOrders() {
+        try {
+            const response = await fetch("http://localhost/thriftique_db/includes/v1/Orders/order.php");
+            const data = await response.json();
+            console.log("Fetched Orders:", data);
+
+            if (data.error) {
+                console.error("Error:", data.message);
+                return;
+            }
+
+            const tableBody = document.querySelector("#ordersTable tbody");
+            tableBody.innerHTML = data.orders.map(order => `
+                <tr>
+                    <td>${order.user_name || "Unknown"}</td>
+                    <td>${order.product_name || "N/A"}</td>
+                    <td>${order.quantity || 0}</td>
+                    <td>${order.total_price}</td>
+                    <td>
+                        <select onchange="updateOrder(${order.id}, this.value)">
+                            <option value="Placed" ${order.status === "Placed" ? "selected" : ""}>Place Order</option>
+                            <option value="Preparing" ${order.status === "Preparing" ? "selected" : ""}>Preparing</option>
+                            <option value="Ready" ${order.status === "Ready" ? "selected" : ""}>Ready</option>
+                            <option value="Completed" ${order.status === "Completed" ? "selected" : ""}>Completed</option>
+                        </select>
+                    </td>
+                    <td>
+                        <button onclick="deleteOrder(${order.id})">🗑 Delete</button>
+                    </td>
+                </tr>
+            `).join("");
+        } catch (error) {
+            console.error("Error fetching orders:", error);
+        }
+    }
+
+    // Update Order
+    async function updateOrder(orderId, newStatus) {
+        if (!newStatus) return;
+
+        try {
+            const response = await fetch("http://localhost/thriftique_db/includes/v1/Orders/order.php", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ action: OrderActions.UPDATE, id: orderId, status: newStatus })
+            });
+
+            const data = await response.json();
+            alert(data.message);
+            fetchOrders();  // Refresh orders table
+        } catch (error) {
+            console.error("Error updating order:", error);
+        }
+    }
+
+    // Delete Order
+    async function deleteOrder(orderId) {
+        if (!confirm("Are you sure you want to delete this order?")) return;
+
+        try {
+            const response = await fetch("http://localhost/thriftique_db/includes/v1/Orders/order.php", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ action: OrderActions.DELETE, id: orderId })
+            });
+
+            const data = await response.json();
+            alert(data.message);
+            fetchOrders();
+        } catch (error) {
+            console.error("Error deleting order:", error);
+        }
+    }
+
+   // Toggle Notifications Panel
+   function toggleNotifications() {
+    const notificationsPanel = document.getElementById("notifications");
+    if (notificationsPanel) {
+        notificationsPanel.classList.toggle("active");
+    } else {
+        console.error("Notifications panel not found.");
     }
 }
 
-// Fetch Notifications
+// Fetch Notifications from backend
 async function fetchNotifications() {
     try {
-        const response = await fetch("get_notifications.php");
+        const response = await fetch("http://localhost/thriftique_db/includes/v1/notification/get_notifications.php");
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
         const data = await response.json();
+        const notificationList = document.getElementById("notification-list");
+        const notificationCount = document.getElementById("notification-count");
+
+        // Save notifications to localStorage
+        localStorage.setItem("notifications", JSON.stringify(data));
+
+        if (Array.isArray(data) && data.length > 0) {
+            notificationList.innerHTML = data.map((n, index) => `<li id="notification-${index}" class="notification-item">${n.message} <button onclick="removeNotification(${index})">Dismiss</button></li>`).join("");
+            notificationCount.style.display = "block";
+            notificationCount.innerText = data.length;
+        } else {
+            notificationList.innerHTML = "<li>No new notifications</li>";
+            notificationCount.style.display = "none";
+        }
+    } catch (error) {
+        console.error("Error fetching notifications:", error);
+        const notificationList = document.getElementById("notification-list");
+        if (notificationList) {
+            notificationList.innerHTML = "<li>Error loading notifications</li>";
+        }
+    }
+}
+
+// Display stored notifications from localStorage
+function displayStoredNotifications() {
+    const notificationList = document.getElementById("notification-list");
+    const notificationCount = document.getElementById("notification-count");
+
+    const notifications = JSON.parse(localStorage.getItem("notifications")) || [];
+
+    if (notifications.length > 0) {
+        notificationList.innerHTML = notifications.map((n, index) => `<li id="notification-${index}" class="notification-item">${n.message} <button onclick="removeNotification(${index})">Dismiss</button></li>`).join("");
+        notificationCount.style.display = "block";
+        notificationCount.innerText = notifications.length;
+    } else {
+        notificationList.innerHTML = "<li>No new notifications</li>";
+        notificationCount.style.display = "none";
+    }
+}
+
+// Remove notification by index
+function removeNotification(index) {
+    // Get notifications from localStorage
+    let notifications = JSON.parse(localStorage.getItem("notifications")) || [];
+
+    // Remove the selected notification
+    notifications.splice(index, 1);
+
+    // Save updated notifications to localStorage
+    localStorage.setItem("notifications", JSON.stringify(notifications));
+
+    // Re-display the updated notifications
+    displayStoredNotifications();
+}
+
+// Declare lastOrderId globally before it's used
+let lastOrderId = 0; // This will track the last order ID to prevent duplicate notifications
+let hasFetched = false; // Flag to ensure the fetch only happens once
+
+async function checkForNewOrders() {
+    if (hasFetched) return; // Prevent further fetching once it's been called
+
+    try {
+        const response = await fetch("http://localhost/thriftique_db/includes/v1/notification/check_new_orders.php");
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const newOrderData = await response.json();
+        console.log("Fetched new orders: ", newOrderData); // Debugging line
 
         const notificationList = document.getElementById("notification-list");
         const notificationCount = document.getElementById("notification-count");
 
-        notificationList.innerHTML = data.length
-            ? data.map(n => `<li>${n.message}</li>`).join("")
-            : "<li>No new notifications</li>";
+        if (newOrderData && newOrderData.length > 0) {
+            // Filter out orders that have already been notified
+            const filteredOrders = newOrderData.filter(order => order.order_id > lastOrderId);
+            console.log("Filtered orders: ", filteredOrders); // Debugging line
 
-        notificationCount.style.display = data.length ? "block" : "none";
-        notificationCount.innerText = data.length;
+            filteredOrders.forEach(order => {
+                const fullName = order.full_name || "Unknown User";
+                const message = `New order from ${fullName}: Order ID ${order.order_id}`;
+                const listItem = document.createElement("li");
+                listItem.innerHTML = `${message} <button onclick="dismissNewOrder(${order.order_id})">Dismiss</button>`;
+                notificationList.prepend(listItem); // Prepend to show new orders at the top
+                notificationCount.style.display = "block";
+                notificationCount.innerText = parseInt(notificationCount.innerText) + 1;
 
-    } catch (error) {
-        console.error("Error fetching notifications:", error);
-    }
-}
-
-// Fetch User Details
-async function fetchUserDetails() {
-    try {
-        const response = await fetch("http://localhost/thriftique_db/includes/v1/admin/get_user.php");
-        const data = await response.json();
-
-        if (data.first_name) {
-            document.getElementById("username").textContent = `${data.first_name} ${data.last_name}`;
+                // Update the last order ID to avoid duplicate notifications
+                lastOrderId = order.order_id;
+            });
         } else {
-            console.warn("User not found or not logged in");
+            console.log("No new orders");
         }
+
+        // Set the flag to true to prevent future fetches
+        hasFetched = true;
     } catch (error) {
-        console.error("Error fetching user data:", error);
+        console.error("Error checking for new orders:", error);
     }
 }
 
-// Toggle User Menu
-function toggleUserMenu(event) {
-    event.stopPropagation();
-    document.getElementById("userDropdown").classList.toggle("active");
+// Poll for new orders (once) every 3 seconds
+setInterval(() => {
+    checkForNewOrders();
+}, 3000); // Will fetch once and then stop
+
+// Toggle Notifications Dropdown
+function toggleNotifications() {
+    const notificationDropdown = document.getElementById("notifications");
+    notificationDropdown.classList.toggle("show");
 }
 
-// Close dropdown when clicking outside
-document.addEventListener("click", event => {
-    const dropdown = document.getElementById("userDropdown");
-    if (dropdown.classList.contains("active") && !event.target.closest(".user-menu")) {
-        dropdown.classList.remove("active");
-    }
+// Fetch notifications, user details, and periodically check for new orders
+document.addEventListener("DOMContentLoaded", function () {
+    // Fetch notifications when the page loads
+    fetchNotifications();
+
+    // Display any stored notifications from localStorage
+    displayStoredNotifications();
 });
 
-// Chatbox
-function openChat() {
-    document.getElementById("chat-section").style.display = "block";
-}
 
-function closeChat() {
-    document.getElementById("chat-section").style.display = "none";
-}
 
-// WebSocket Connection
-let ws;
 
-function connectWebSocket() {
-    ws = new WebSocket("ws://localhost:8080");
 
-    ws.onopen = () => console.log("Connected to WebSocket");
-
-    ws.onmessage = event => {
-        console.log("WebSocket message received:", event.data);
-
-        const chatMessages = document.getElementById("chat-messages");
-        if (!chatMessages) return console.error("Chat messages container not found!");
-
+    // Fetch User Details
+    async function fetchUserDetails() {
         try {
-            const data = JSON.parse(event.data);
-            if (!data.message) throw new Error("Invalid message format received");
+            const response = await fetch("http://localhost/thriftique_db/includes/v1/admin/get_user.php");
 
-            const message = document.createElement("div");
-            message.classList.add("message");
-            message.textContent = `${data.sender}: ${data.message}`;
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
 
-            chatMessages.appendChild(message);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
+            const data = await response.json();
+            const usernameElement = document.getElementById("username");
+
+            if (usernameElement) {
+                if (data.first_name && data.last_name) {
+                    usernameElement.textContent = `${data.first_name} ${data.last_name}`;
+                } else {
+                    console.warn("User not found or not logged in.");
+                    usernameElement.textContent = "Guest";
+                }
+            }
         } catch (error) {
-            console.error("Error processing WebSocket message:", error);
+            console.error("Error fetching user data:", error);
         }
-    };
-
-    ws.onclose = () => {
-        console.warn("WebSocket closed. Reconnecting in 3 seconds...");
-        setTimeout(connectWebSocket, 3000);
-    };
-
-    ws.onerror = error => {
-        console.error("WebSocket error:", error);
-        ws.close();
-    };
-}
-
-// Send Chat Message
-function sendMessage() {
-    const input = document.getElementById("chatMessage");
-    const message = input.value.trim();
-
-    if (!message) return console.warn("Cannot send an empty message.");
-
-    if (ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({ sender: "Admin", receiver: "User", message }));
-        input.value = "";
-    } else {
-        console.error("WebSocket is not open. Cannot send message.");
     }
-}
+    
+    // Toggle User Menu
+    function toggleUserMenu(event) {
+        event.stopPropagation();
+        document.getElementById("userDropdown").classList.toggle("active");
+    }
 
-</script>
+    // Close dropdown when clicking outside
+    document.addEventListener("click", event => {
+        const dropdown = document.getElementById("userDropdown");
+        if (dropdown.classList.contains("active") && !event.target.closest(".user-menu")) {
+            dropdown.classList.remove("active");
+        }
+    });
+
+    // Chatbox
+    function openChat() {
+        document.getElementById("chat-section").style.display = "block";
+    }
+
+    function closeChat() {
+        document.getElementById("chat-section").style.display = "none";
+    }
+
+    // WebSocket Connection
+    let ws;
+
+    function connectWebSocket() {
+        ws = new WebSocket("ws://localhost:8080");
+
+        ws.onopen = () => console.log("Connected to WebSocket");
+
+        ws.onmessage = event => {
+            console.log("WebSocket message received:", event.data);
+
+            const chatMessages = document.getElementById("chat-messages");
+            if (!chatMessages) return console.error("Chat messages container not found!");
+
+            try {
+                const data = JSON.parse(event.data);
+                if (!data.message) throw new Error("Invalid message format received");
+
+                const message = document.createElement("div");
+                message.classList.add("message");
+                message.textContent = `${data.sender}: ${data.message}`;
+
+                chatMessages.appendChild(message);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            } catch (error) {
+                console.error("Error processing WebSocket message:", error);
+            }
+        };
+
+        ws.onclose = () => {
+            console.warn("WebSocket closed. Reconnecting in 3 seconds...");
+            setTimeout(connectWebSocket, 3000);
+        };
+
+        ws.onerror = error => {
+            console.error("WebSocket error:", error);
+            ws.close();
+        };
+    }
+
+    // Send Chat Message
+    function sendMessage() {
+        const input = document.getElementById("chatMessage");
+        const message = input.value.trim();
+
+        if (!message) return console.warn("Cannot send an empty message.");
+
+        if (ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({ sender: "Admin", receiver: "User", message }));
+            input.value = "";
+        } else {
+            console.error("WebSocket is not open. Cannot send message.");
+        }
+    }
+  </script>
 </body>
 </html>

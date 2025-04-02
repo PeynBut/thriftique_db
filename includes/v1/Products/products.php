@@ -136,19 +136,19 @@ $conn->close();
     <div class="menu-toggle" onclick="toggleMenu()">☰</div>
     <h2 style="padding-top: 20px; padding-left: 20px;">Product Management</h2>
 
-    <!-- Notification Bell -->
     <div class="notification-container" onclick="toggleNotifications()">
-        <i class="fas fa-bell notification-bell"></i>
-        <span class="badge" id="notification-count">0</span>
-    </div>
+    <i class="fas fa-bell notification-bell" aria-label="Notifications"></i>
+    <span class="badge" id="notification-count">0</span>
 
     <!-- Notifications Dropdown -->
-    <div class="notification-dropdown" id="notification-dropdown">
+    <div class="notification-dropdown" id="notifications">
         <h4>Notifications</h4>
         <ul id="notification-list">
             <li>No new notifications</li>
         </ul>
     </div>
+</div>
+
 <!--drop down menu-->
     <div class="user-menu">
     <div class="user-info" onclick="toggleUserMenu(event)">
@@ -295,9 +295,86 @@ $conn->close();
 
     <script>
 
+        // Function to toggle the sidebar visibility
         function toggleMenu() {
-            document.getElementById('sidebar').classList.toggle('active');
-            document.getElementById('content').classList.toggle('shift');
+            const sidebar = document.getElementById("sidebar");
+            sidebar.classList.toggle("active");
+        }
+
+        // Fetch User Details
+async function fetchUserDetails() {
+    try {
+        const response = await fetch("http://localhost/thriftique_db/includes/v1/admin/get_user.php");
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const usernameElement = document.getElementById("username");
+
+        if (usernameElement) {
+            if (data.first_name && data.last_name) {
+                usernameElement.textContent = `${data.first_name} ${data.last_name}`;
+            } else {
+                console.warn("User not found or not logged in.");
+                usernameElement.textContent = "Guest";
+            }
+        }
+    } catch (error) {
+        console.error("Error fetching user data:", error);
+    }
+}
+
+// Call fetchUserDetails on DOM content loaded
+document.addEventListener("DOMContentLoaded", function () {
+    // Fetch user details when the page loads
+    fetchUserDetails();
+
+    // Existing code
+    fetchNotifications();
+    setInterval(checkForNewOrders, 10000); // Poll every 10 seconds
+});
+            // Toggle User Menu
+            function toggleUserMenu(event) {
+        event.stopPropagation();
+        document.getElementById("userDropdown").classList.toggle("active");
+    }
+        
+
+    
+        // Fetch Notifications
+        async function fetchNotifications() {
+            try {
+                const response = await fetch("http://localhost/thriftique_db/includes/v1/notification/get_notifications.php");
+    
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+    
+                const data = await response.json();
+                const notificationList = document.getElementById("notification-list");
+                const notificationCount = document.getElementById("notification-count");
+    
+                // Save notifications to localStorage
+                localStorage.setItem("notifications", JSON.stringify(data));
+    
+                if (Array.isArray(data) && data.length > 0) {
+                    notificationList.innerHTML = data.map(n => `<li>${n.message}</li>`).join("");
+                    notificationCount.style.display = "block";
+                    notificationCount.innerText = data.length;
+                } else {
+                    notificationList.innerHTML = "<li>No new notifications</li>";
+                    notificationCount.style.display = "none";
+                }
+            } catch (error) {
+                console.error("Error fetching notifications:", error);
+    
+                const notificationList = document.getElementById("notification-list");
+                if (notificationList) {
+                    notificationList.innerHTML = "<li>Error loading notifications</li>";
+                }
+            }
         }
 
         function logoutUser() {
@@ -473,89 +550,181 @@ function addProductToTable(product) {
     tableBody.insertBefore(newRow, tableBody.firstChild); // Add at the top
 }
 
-function fetchNotifications() {
-    fetch('get_notifications.php')
-        .then(response => response.json())
-        .then(data => {
-            let notificationList = document.getElementById('notification-list');
-            let notificationCount = document.getElementById('notification-count');
-
-            notificationList.innerHTML = "";
-            if (data.length > 0) {
-                notificationCount.style.display = "block";
-                notificationCount.innerText = data.length;
-
-                data.forEach(notification => {
-                    let li = document.createElement('li');
-                    li.innerText = notification.message;
-                    notificationList.appendChild(li);
-                });
-            } else {
-                notificationList.innerHTML = "<li>No new notifications</li>";
-                notificationCount.style.display = "none";
-            }
-        })
-        .catch(error => console.error('Error fetching notifications:', error));
-}
-
-function toggleUserMenu(event) {
-    event.stopPropagation(); // Prevents event from bubbling to the document
-    const dropdown = document.getElementById("userDropdown");
-    dropdown.classList.toggle("active");
-}
-
-// Close dropdown when clicking outside
-document.addEventListener("click", function (event) {
-    const dropdown = document.getElementById("userDropdown");
-    if (dropdown.classList.contains("active") && !event.target.closest(".user-menu")) {
-        dropdown.classList.remove("active");
-    }
-});
-
-document.addEventListener("DOMContentLoaded", async function () {
+    // Fetch Notifications
+async function fetchNotifications() {
     try {
-        const response = await fetch("http://localhost/thriftique_db/includes/v1/admin/get_user.php");
+        const response = await fetch("http://localhost/thriftique_db/includes/v1/notification/get_notifications.php");
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
         const data = await response.json();
 
-        if (data.first_name) {
-            document.getElementById("username").textContent = `${data.first_name} ${data.last_name}`;
+        const notificationList = document.getElementById("notification-list");
+        const notificationCount = document.getElementById("notification-count");
+
+        if (Array.isArray(data) && data.length > 0) {
+            notificationList.innerHTML = data.map(n => `<li>${n.message}</li>`).join("");
+            notificationCount.style.display = "block";
+            notificationCount.innerText = data.length;
         } else {
-            console.warn("User not found or not logged in");
+            notificationList.innerHTML = "<li>No new notifications</li>";
+            notificationCount.style.display = "none";
         }
     } catch (error) {
-        console.error("Error fetching user data:", error);
+        console.error("Error fetching notifications:", error);
+
+        const notificationList = document.getElementById("notification-list");
+        if (notificationList) {
+            notificationList.innerHTML = "<li>Error loading notifications</li>";
+        }
     }
-});
-    //notification bell
-function fetchNotifications() {
-    fetch('http://localhost/thriftique_db/includes/v1/notification/get_notifications.php')
-        .then(response => response.text()) // Get raw response first
-        .then(text => {
-            try {
-                let data = JSON.parse(text); // Try parsing JSON
-                let notificationList = document.getElementById('notification-list');
-                let notificationCount = document.getElementById('notification-count');
-
-                notificationList.innerHTML = "";
-                if (data.length > 0) {
-                    notificationCount.style.display = "block";
-                    notificationCount.innerText = data.length;
-
-                    data.forEach(notification => {
-                        let li = document.createElement('li');
-                        li.innerText = notification.message;
-                        notificationList.appendChild(li);
-                    });
-                } else {
-                    notificationList.innerHTML = "<li>No new notifications</li>";
-                    notificationCount.style.display = "none";
-                }
-            } catch (error) {
-                console.error("Error parsing JSON:", text); // Show raw response
-            }
-        })
-        .catch(error => console.error('Error fetching notifications:', error));
 }
+let lastOrderId = 0; // Track the last order ID
+let hasFetched = false; // Flag to ensure the fetch only happens once
+
+// Fetch Notifications from backend
+async function fetchNotifications() {
+    try {
+        const response = await fetch("http://localhost/thriftique_db/includes/v1/notification/get_notifications.php");
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const notificationList = document.getElementById("notification-list");
+        const notificationCount = document.getElementById("notification-count");
+
+        if (Array.isArray(data) && data.length > 0) {
+            notificationList.innerHTML = data.map(n => `<li>${n.message}</li>`).join("");
+            notificationCount.style.display = "block";
+            notificationCount.innerText = data.length;
+        } else {
+            notificationList.innerHTML = "<li>No new notifications</li>";
+            notificationCount.style.display = "none";
+        }
+    } catch (error) {
+        console.error("Error fetching notifications:", error);
+        const notificationList = document.getElementById("notification-list");
+        if (notificationList) {
+            notificationList.innerHTML = "<li>Error loading notifications</li>";
+        }
+    }
+}
+
+// Display notifications stored in localStorage
+function displayStoredNotifications() {
+    const notificationList = document.getElementById("notification-list");
+    const notificationCount = document.getElementById("notification-count");
+
+    const notifications = JSON.parse(localStorage.getItem("notifications")) || [];
+
+    if (notifications.length > 0) {
+        notificationList.innerHTML = notifications.map(n => `<li>${n.message}</li>`).join("");
+        notificationCount.style.display = "block";
+        notificationCount.innerText = notifications.length;
+    } else {
+        notificationList.innerHTML = "<li>No new notifications</li>";
+        notificationCount.style.display = "none";
+    }
+}
+
+// Check for new orders (only fetch once)
+async function checkForNewOrders() {
+    if (hasFetched) return; // Prevent further fetching once it's been called
+
+    try {
+        const response = await fetch("http://localhost/thriftique_db/includes/v1/notification/check_new_orders.php");
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const newOrderData = await response.json();
+        console.log("Fetched new orders: ", newOrderData); // Debugging line
+
+        const notificationList = document.getElementById("notification-list");
+        const notificationCount = document.getElementById("notification-count");
+
+        if (newOrderData && newOrderData.length > 0) {
+            // Filter out orders that have already been notified
+            const filteredOrders = newOrderData.filter(order => order.order_id > lastOrderId);
+            console.log("Filtered orders: ", filteredOrders); // Debugging line
+
+            filteredOrders.forEach(order => {
+                const fullName = order.full_name || "Unknown User";
+                const message = `New order from ${fullName}: Order ID ${order.order_id}`;
+                const listItem = document.createElement("li");
+                listItem.innerHTML = message;
+                notificationList.prepend(listItem); // Prepend to show new orders at the top
+                notificationCount.style.display = "block";
+                notificationCount.innerText = parseInt(notificationCount.innerText) + 1;
+
+                // Update the last order ID
+                lastOrderId = order.order_id;
+            });
+        } else {
+            console.log("No new orders");
+        }
+
+        // Set the flag to true to prevent future fetches
+        hasFetched = true;
+    } catch (error) {
+        console.error("Error checking for new orders:", error);
+    }
+}
+
+// Poll for new orders (once) every 3 seconds
+setInterval(() => {
+    checkForNewOrders();
+}, 3000); // Will fetch once and then stop
+
+// Toggle Notifications Dropdown
+function toggleNotifications() {
+    const notificationDropdown = document.getElementById("notifications");
+    notificationDropdown.classList.toggle("show");
+}
+
+// Toggle User Menu
+function toggleUserMenu(event) {
+    event.stopPropagation();
+    document.getElementById("userDropdown").classList.toggle("active");
+}
+
+// Fetch notifications and display when the page loads
+document.addEventListener("DOMContentLoaded", function () {
+    // Attach the event listener to the notification bell icon after DOM is loaded
+    const notificationBell = document.querySelector('.notification-bell');
+    if (notificationBell) {
+        notificationBell.addEventListener('click', toggleNotifications);
+    }
+
+    // Fetch notifications when the page loads
+    fetchNotifications();
+
+    // Display any stored notifications from localStorage
+    displayStoredNotifications();
+});
+ // Fetch notifications, user details, and periodically check for new orders
+ document.addEventListener("DOMContentLoaded", function () {
+            // Attach the event listener to the notification bell icon after DOM is loaded
+            const notificationBell = document.querySelector('.notification-bell');
+            if (notificationBell) {
+                notificationBell.addEventListener('click', toggleNotifications);
+            }
+    
+            // Fetch notifications when the page loads
+            fetchNotifications();
+    
+            // Fetch user details when the page loads
+            fetchUserDetails();
+    
+            // Check for new orders every 10 seconds
+            setInterval(checkForNewOrders, 10000); // Poll every 10 seconds
+        });
+
 function openChat() {
         document.getElementById('chat-section').style.display = "block";
     }

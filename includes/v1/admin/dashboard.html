@@ -10,17 +10,28 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 </head>
 <body>
+    <style>
+        /* Initially hide the notification dropdown */
+.notification-dropdown {
+    display: none;
+}
+
+/* When the dropdown is active, make it visible */
+.notification-dropdown.active {
+    display: block;
+}
+
+    </style>
   
   <!-- Top Navigation Bar -->
   <div class="top-bar">
     <div class="menu-toggle" onclick="toggleMenu()">☰</div>
-    <h2 style="margin-left: 20px;">Thriftique Categories</h2>
+    <h2 style="margin-left: 20px;">Thriftique Dashboard</h2>
 
-    <!-- Notification Icon -->
-    <div class="notification-container" onclick="toggleNotifications()">
+    <div class="notification-container" id="notification-container">
         <i class="fas fa-bell notification-bell" aria-label="Notifications"></i>
         <span class="badge" id="notification-count">0</span>
-
+    
         <!-- Notifications Dropdown -->
         <div class="notification-dropdown" id="notifications">
             <h4>Notifications</h4>
@@ -29,18 +40,19 @@
             </ul>
         </div>
     </div>
+    
     <div class="user-menu">
-        <div class="user-info" onclick="toggleUserMenu()">
-            <span id="username">Admin</span> <!-- Placeholder for dynamic name -->
+        <div class="user-info" onclick="toggleUserMenu(event)">
+            <span id="username">Admin</span>
             <i class="fas fa-user-circle"></i>
         </div>
         <div class="user-dropdown" id="userDropdown">
-            <a href="http://localhost/thriftique_db/includes/v1/admin/settings.html">⚙️ Settings</a>
-            <a href="http://localhost/thriftique_db/includes/v1/admin/settings.html">🔒 Change Password</a>
-             <a href="http://localhost/thriftique_db/includes/v1/admin/logout.php" onclick="logoutUser(event)">🚪 Logout</a>
-        </div>
-    </div> 
-  </div>
+          <a href="http://localhost/thriftique_db/includes/v1/admin/settings.html">⚙️ Settings</a>
+          <a href="http://localhost/thriftique_db/includes/v1/admin/settings.html">🔒 Change Password</a>
+           <a href="http://localhost/thriftique_db/includes/v1/admin/logout.php" onclick="logoutUser(event)">🚪 Logout</a>
+      </div>
+    </div>
+</div>  
 
   <!-- Sidebar Navigation -->
   <div class="sidebar" id="sidebar">
@@ -92,165 +104,272 @@
         </div>
     </div>
 
-  <script>
-
-    function toggleMenu() {
-        document.getElementById('sidebar').classList.toggle('active');
-        document.getElementById('content').classList.toggle('shift');
-    }
-    document.addEventListener("DOMContentLoaded", async function () {
-        try {
-            const analyticsResponse = await fetch("http://localhost/thriftique_db/includes/v1/analytic/analytics.php");
-            const analyticsData = await analyticsResponse.json();
-        
-            // Log the fetched analyticsData to check its structure
-            console.log("Fetched Analytics Data:", analyticsData);
-        
-            if (analyticsData && analyticsData.length > 0) {
-                // Use the 'date' field for labels
-                const labels = analyticsData.map(row => row.date);
-                const salesData = analyticsData.map(row => row.sales);
-                const ordersData = analyticsData.map(row => row.orders);
-        
-                console.log("Labels:", labels);  // Log labels
-                console.log("Sales Data:", salesData);  // Log sales data
-                console.log("Orders Data:", ordersData);  // Log orders data
-        
-                updateCards(analyticsData);
-                createChart("salesChart", "Sales (₱)", labels, salesData, "#007bff");
-                createChart("ordersChart", "Orders", labels, ordersData, "#28a745");
-            } else {
-                console.warn("No analytics data available");
+    <script>
+            // Function to toggle the sidebar visibility
+            function toggleMenu() {
+                const sidebar = document.getElementById("sidebar");
+                sidebar.classList.toggle("active");
             }
         
-            // Additional logic for user data...
-        } catch (error) {
-            console.error("Error fetching data:", error);
-        }
-    });
-    
-    
-    function createChart(elementId, label, labels, data, color) {
-        if (!labels || labels.length === 0 || !data || data.length === 0) {
-            console.error("Invalid data or labels for the chart.");
-            return;
-        }
-    
-        new Chart(document.getElementById(elementId).getContext("2d"), {
-            type: "bar",
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: label,
-                    data: data,
-                    backgroundColor: color,
-                    borderWidth: 1,
-                    barThickness: 20
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: { beginAtZero: true },
-                    x: { ticks: { autoSkip: false } }
+            // Fetch Notifications
+            async function fetchNotifications() {
+                try {
+                    const response = await fetch("http://localhost/thriftique_db/includes/v1/notification/get_notifications.php");
+        
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+        
+                    const data = await response.json();
+                    const notificationList = document.getElementById("notification-list");
+                    const notificationCount = document.getElementById("notification-count");
+        
+                    // Save notifications to localStorage
+                    localStorage.setItem("notifications", JSON.stringify(data));
+        
+                    if (Array.isArray(data) && data.length > 0) {
+                        notificationList.innerHTML = data.map(n => `<li>${n.message}</li>`).join("");
+                        notificationCount.style.display = "block";
+                        notificationCount.innerText = data.length;
+                    } else {
+                        notificationList.innerHTML = "<li>No new notifications</li>";
+                        notificationCount.style.display = "none";
+                    }
+                } catch (error) {
+                    console.error("Error fetching notifications:", error);
+        
+                    const notificationList = document.getElementById("notification-list");
+                    if (notificationList) {
+                        notificationList.innerHTML = "<li>Error loading notifications</li>";
+                    }
                 }
             }
-        });
-    }
-    
-
-    function updateCards(data) {
-        if (data.length > 0) {
-            document.querySelectorAll(".analytics-overview .card p")[0].textContent = `₱${data.reduce((acc, row) => acc + parseFloat(row.sales), 0).toLocaleString()}`;
-            document.querySelectorAll(".analytics-overview .card p")[1].textContent = data.reduce((acc, row) => acc + parseInt(row.orders), 0);
-        }
-    }
-
-    function toggleUserMenu() {
+            // Toggle User Menu
+    function toggleUserMenu(event) {
+        event.stopPropagation();
         document.getElementById("userDropdown").classList.toggle("active");
     }
+        
+        
+    
+    function displayStoredNotifications() {
+    const notificationList = document.getElementById("notification-list");
+    const notificationCount = document.getElementById("notification-count");
 
-    function toggleNotifications() {
-        document.getElementById("notifications").classList.toggle("active");
+    const notifications = JSON.parse(localStorage.getItem("notifications")) || [];
+
+    if (notifications.length > 0) {
+        notificationList.innerHTML = notifications.map(n => `<li>${n.message}</li>`).join("");
+        notificationCount.style.display = "block";
+        notificationCount.innerText = notifications.length;
+    } else {
+        notificationList.innerHTML = "<li>No new notifications</li>";
+        notificationCount.style.display = "none";
     }
+}
 
-    function logoutUser(event) {
-        event.preventDefault(); // Prevent default link behavior
+    
+let lastOrderId = 0; // Track the last order ID
+let hasFetched = false; // Flag to ensure the fetch only happens once
 
-        const confirmLogout = confirm("Are you sure you want to log out?");
-        if (confirmLogout) {
-            fetch("http://localhost/thriftique_db/includes/v1/admin/logout.php", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" }
-            })
-            .then(response => {
-                if (response.ok) {
-                    window.location.href = "http://localhost/thriftique_db/includes/v1/admin/login.php";
-                } else {
-                    console.error("Error logging out user");
-                }
-            })
-            .catch(error => console.error("Error logging out user:", error));
-        }
-    }
+async function checkForNewOrders() {
+    if (hasFetched) return; // Prevent further fetching once it's been called
 
-    function openChat() {
-        document.getElementById('chat-section').style.display = "block";
-    }
+    try {
+        // Make a request to the backend to check for new orders
+        const response = await fetch("http://localhost/thriftique_db/includes/v1/notification/check_new_orders.php");
 
-    function closeChat() {
-        document.getElementById('chat-section').style.display = "none";
-    }
-
-    // WebSocket Connection
-    let ws;
-    function connectWebSocket() {
-        ws = new WebSocket("ws://localhost:8080");
-
-        ws.onopen = function () {
-            console.log("Connected to WebSocket");
-        };
-
-        ws.onmessage = function (event) {
-            const chatMessages = document.getElementById("chat-messages");
-            const data = JSON.parse(event.data);
-            const message = document.createElement("div");
-            message.classList.add("message");
-            message.textContent = `${data.sender}: ${data.message}`;
-            chatMessages.appendChild(message);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        };
-
-        ws.onclose = function () {
-            console.warn("WebSocket closed. Reconnecting in 3 seconds...");
-            setTimeout(connectWebSocket, 3000); // Reconnect after 3s
-        };
-
-        ws.onerror = function (error) {
-            console.error("WebSocket error:", error);
-            ws.close();
-        };
-    }
-
-    // Start WebSocket connection
-    connectWebSocket();
-
-    function sendMessage() {
-        const input = document.getElementById("chatMessage");
-        const message = input.value.trim();
-        if (!message) {
-            console.warn("Cannot send an empty message.");
-            return;
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
         }
 
-        if (ws.readyState === WebSocket.OPEN) {
-            ws.send(JSON.stringify({ sender: "Admin", message: message }));
-            input.value = ''; // Clear input after sending message
+        const newOrderData = await response.json();
+
+        console.log("Fetched new orders: ", newOrderData); // Debugging line
+
+        // If there are new orders, process them instantly
+        if (newOrderData && newOrderData.length > 0) {
+            const notificationList = document.getElementById("notification-list");
+            const notificationCount = document.getElementById("notification-count");
+
+            // Filter out orders that have already been notified (to prevent duplicates)
+            const filteredOrders = newOrderData.filter(order => order.order_id > lastOrderId);
+
+            console.log("Filtered orders: ", filteredOrders); // Debugging line
+
+            filteredOrders.forEach(order => {
+                const fullName = order.full_name || "Unknown User"; // Use full_name instead of username
+                const message = `New order from ${fullName}: Order ID ${order.order_id}`;
+                const listItem = document.createElement("li");
+                listItem.innerHTML = message;
+                notificationList.prepend(listItem); // Prepend to show new orders at the top
+                notificationCount.style.display = "block";
+                notificationCount.innerText = parseInt(notificationCount.innerText) + 1;
+
+                // Update the last order ID to avoid duplicate notifications
+                lastOrderId = order.order_id;
+            });
         } else {
-            console.warn("WebSocket is not open.");
+            // No new orders, so we don't need to update the notification count
+            console.log("No new orders");
         }
+
+        // Set the flag to true to prevent future fetches
+        hasFetched = true;
+    } catch (error) {
+        console.error("Error checking for new orders:", error);
     }
-  </script>
+}
+
+// Poll for new orders every 3 seconds (only once) by calling checkForNewOrders
+setInterval(() => {
+    checkForNewOrders();
+}, 3000); // Will only fetch once, and then stop
+
+    
+
+        // Toggle Notifications Dropdown
+        function toggleNotifications() {
+            const notificationDropdown = document.getElementById("notifications");
+            notificationDropdown.classList.toggle("show");
+        }
+    
+        // Fetch user details and update the username on page load
+        async function fetchUserDetails() {
+            try {
+                const response = await fetch("http://localhost/thriftique_db/includes/v1/admin/get_user.php");
+    
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+    
+                const data = await response.json();
+                const usernameElement = document.getElementById("username");
+    
+                if (usernameElement) {
+                    if (data.first_name && data.last_name) {
+                        usernameElement.textContent = `${data.first_name} ${data.last_name}`;
+                    } else {
+                        console.warn("User not found or not logged in.");
+                        usernameElement.textContent = "Guest";
+                    }
+                }
+            } catch (error) {
+                console.error("Error fetching user data:", error);
+            }
+        }
+    
+        // Fetch notifications, user details, and periodically check for new orders
+        document.addEventListener("DOMContentLoaded", function () {
+            // Attach the event listener to the notification bell icon after DOM is loaded
+            const notificationBell = document.querySelector('.notification-bell');
+            if (notificationBell) {
+                notificationBell.addEventListener('click', toggleNotifications);
+            }
+    
+            // Fetch notifications when the page loads
+            fetchNotifications();
+    
+            // Fetch user details when the page loads
+            fetchUserDetails();
+    
+            // Check for new orders every 10 seconds
+            setInterval(checkForNewOrders, 10000); // Poll every 10 seconds
+        });
+    
+        // Logout User function
+        function logoutUser(event) {
+            event.preventDefault(); // Prevent default link behavior
+    
+            const confirmLogout = confirm("Are you sure you want to log out?");
+            if (confirmLogout) {
+                fetch("http://localhost/thriftique_db/includes/v1/admin/logout.php", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" }
+                })
+                .then(response => {
+                    if (response.ok) {
+                        window.location.href = "http://localhost/thriftique_db/includes/v1/admin/login.php";
+                    } else {
+                        console.error("Error logging out user");
+                    }
+                })
+                .catch(error => console.error("Error logging out user:", error));
+            }
+        }
+    
+        // Open/Close Chat function
+        function openChat() {
+            document.getElementById('chat-section').style.display = "block";
+        }
+    
+        function closeChat() {
+            document.getElementById('chat-section').style.display = "none";
+        }
+            // Fetch notifications on page load
+        document.addEventListener("DOMContentLoaded", async function () {
+            await fetchNotifications();
+            
+            // Fetch analytics data and create charts
+            try {
+                const analyticsResponse = await fetch("http://localhost/thriftique_db/includes/v1/analytic/analytics.php");
+                const analyticsData = await analyticsResponse.json();
+    
+                if (analyticsData && analyticsData.length > 0) {
+                    const labels = analyticsData.map(row => row.date);
+                    const salesData = analyticsData.map(row => row.sales);
+                    const ordersData = analyticsData.map(row => row.orders);
+    
+                    updateCards(analyticsData);
+                    createChart("salesChart", "Sales (₱)", labels, salesData, "#007bff");
+                    createChart("ordersChart", "Orders", labels, ordersData, "#28a745");
+                } else {
+                    console.warn("No analytics data available");
+                }
+            } catch (error) {
+                console.error("Error fetching data:", error);
+            }
+        });
+    
+        // Function to update card data
+        function updateCards(data) {
+            if (data.length > 0) {
+                document.querySelectorAll(".analytics-overview .card p")[0].textContent = `₱${data.reduce((acc, row) => acc + parseFloat(row.sales), 0).toLocaleString()}`;
+                document.querySelectorAll(".analytics-overview .card p")[1].textContent = data.reduce((acc, row) => acc + parseInt(row.orders), 0);
+            }
+        }
+    
+        // Create Chart function
+        function createChart(elementId, label, labels, data, color) {
+            if (!labels || labels.length === 0 || !data || data.length === 0) {
+                console.error("Invalid data or labels for the chart.");
+                return;
+            }
+    
+            new Chart(document.getElementById(elementId).getContext("2d"), {
+                type: "bar",
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: label,
+                        data: data,
+                        backgroundColor: color,
+                        borderWidth: 1,
+                        barThickness: 20
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true },
+                        x: { ticks: { autoSkip: false } }
+                    }
+                }
+            });
+        }
+    </script>
+    
+    
 </body>
 </html>
